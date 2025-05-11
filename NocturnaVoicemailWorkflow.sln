@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nocturna.Presentation", "Nocturna.Presentation\Nocturna.Presentation.csproj", "{41C4BCC4-227D-4875-A81B-8E75BC67C2B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nocturna.Application", "Nocturna.ApplicationServices\Nocturna.Application.csproj", "{357BD14A-E1E8-4716-B915-B5B3CEDE525A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nocturna.Domain", "Nocturna.Domain\Nocturna.Domain.csproj", "{535D36C3-C167-4A01-89F3-B4872E1B29F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nocturna.Infrastructure", "Nocturna.Infrastructure\Nocturna.Infrastructure.csproj", "{B0B9C6A5-E030-4DA0-BFA1-3936A1FE6273}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nocturna.UnitTests", "Nocturna.UnitTests\Nocturna.UnitTests.csproj", "{40CA4FF7-E576-442E-9605-6CCF37D4C83D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RingCentral.Subscription", "RingCentral.Subscription\RingCentral.Subscription.csproj", "{4415C1BB-2EA1-421C-89F0-CB43581F65E9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{41C4BCC4-227D-4875-A81B-8E75BC67C2B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41C4BCC4-227D-4875-A81B-8E75BC67C2B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41C4BCC4-227D-4875-A81B-8E75BC67C2B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41C4BCC4-227D-4875-A81B-8E75BC67C2B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{357BD14A-E1E8-4716-B915-B5B3CEDE525A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{357BD14A-E1E8-4716-B915-B5B3CEDE525A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{357BD14A-E1E8-4716-B915-B5B3CEDE525A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{357BD14A-E1E8-4716-B915-B5B3CEDE525A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{535D36C3-C167-4A01-89F3-B4872E1B29F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{535D36C3-C167-4A01-89F3-B4872E1B29F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{535D36C3-C167-4A01-89F3-B4872E1B29F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{535D36C3-C167-4A01-89F3-B4872E1B29F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0B9C6A5-E030-4DA0-BFA1-3936A1FE6273}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B9C6A5-E030-4DA0-BFA1-3936A1FE6273}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0B9C6A5-E030-4DA0-BFA1-3936A1FE6273}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0B9C6A5-E030-4DA0-BFA1-3936A1FE6273}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40CA4FF7-E576-442E-9605-6CCF37D4C83D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40CA4FF7-E576-442E-9605-6CCF37D4C83D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40CA4FF7-E576-442E-9605-6CCF37D4C83D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40CA4FF7-E576-442E-9605-6CCF37D4C83D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4415C1BB-2EA1-421C-89F0-CB43581F65E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4415C1BB-2EA1-421C-89F0-CB43581F65E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4415C1BB-2EA1-421C-89F0-CB43581F65E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4415C1BB-2EA1-421C-89F0-CB43581F65E9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
