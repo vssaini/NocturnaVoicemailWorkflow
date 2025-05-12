@@ -12,29 +12,29 @@ public class SecurityService(ILogger<SecurityService> logger, IOptions<RingCentr
 {
     public async Task<SecurityVerificationResult> VerifyTokenAsync(HttpRequestData req, CancellationToken cancellationToken = default)
     {
-        if (req.Headers.TryGetValues("validation-token", out var tokens))
+        if (req.Headers.TryGetValues("verification-token", out var tokens))
         {
             var token = tokens.First();
             if (token != options.Value.WebhookSecret)
             {
-                logger.LogWarning("Security verification failed — invalid validation-token {Token}", token);
-                var response = await CreateErrorResponseAsync(req, "Invalid validation-token", cancellationToken);
+                logger.LogWarning("Security verification failed — invalid verification-token {Token}", token);
+                var response = await CreateErrorResponseAsync(req, "Invalid verification-token", cancellationToken);
                 return new SecurityVerificationResult { IsValid = false, Response = response };
             }
 
-            logger.LogInformation("Security verification completed — validation-token matched");
+            logger.LogInformation("Security verification completed — verification-token matched");
             var successResponse = req.CreateResponse(HttpStatusCode.OK);
             return new SecurityVerificationResult { IsValid = true, Response = successResponse };
         }
 
-        logger.LogWarning("Security verification failed — validation-token header not found");
-        var missingResponse = await CreateErrorResponseAsync(req, "Required header validation-token is missing", cancellationToken);
+        logger.LogWarning("Security verification failed — verification-token header not found");
+        var missingResponse = await CreateErrorResponseAsync(req, "Required header verification-token is missing", cancellationToken);
         return new SecurityVerificationResult { IsValid = false, Response = missingResponse };
     }
 
     /// <summary>
     /// Creates a 401 Unauthorized response with a descriptive error message.
-    /// Used when the developer-defined validation-token is missing or invalid.
+    /// Used when the developer-defined verification-token is missing or invalid.
     /// </summary>
     /// <param name="req">The incoming HTTP request.</param>
     /// <param name="message">The error message to include in the response body.</param>
