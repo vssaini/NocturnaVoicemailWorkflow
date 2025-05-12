@@ -1,4 +1,4 @@
-﻿using Nocturna.Domain.Models;
+﻿using Nocturna.Domain.Models.RingCentral;
 
 namespace Nocturna.Application.Abstractions;
 

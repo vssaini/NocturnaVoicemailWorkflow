@@ -11,31 +11,31 @@ public class FtpSettings
     /// Gets the hostname or IP address of the FTP server.
     /// </summary>
     [Required]
-    public string Hostname { get; init; }
+    public required string Hostname { get; init; }
 
     /// <summary>
     /// Gets the username for FTP server authentication.
     /// </summary>
     [Required]
-    public string Username { get; init; }
+    public required string Username { get; init; }
 
     /// <summary>
     /// Gets the password for FTP server authentication.
     /// </summary>
     [Required]
-    public string Password { get; init; }
+    public required string Password { get; init; }
 
     /// <summary>
     /// Gets the root directory path on the FTP server for file operations.
     /// </summary>
     [Required]
-    public string RootDirectory { get; init; }
+    public required string RootDirectory { get; init; }
 
     /// <summary>
     /// Gets the name of the Excel file for logging voicemail transcription.
     /// </summary>
     [Required]
-    public string ExcelFileName { get; init; }
+    public required string ExcelFileName { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether to log FTP activity to the console. Defaults to false.

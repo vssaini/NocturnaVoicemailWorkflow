@@ -5,5 +5,5 @@ namespace Nocturna.Domain.Models;
 public class SecurityVerificationResult
 {
     public bool IsValid { get; set; }
-    public HttpResponseData Response { get; set; }
+    public required HttpResponseData Response { get; set; }
 }

@@ -23,24 +23,24 @@ public class RingCentralSettings
     /// The client ID for RingCentral OAuth authentication.
     /// </summary>
     [Required(ErrorMessage = "ClientId is required.")]
-    public string ClientId { get; init; }
+    public required string ClientId { get; init; }
 
     /// <summary>
     /// The client secret for RingCentral OAuth authentication.
     /// </summary>
     [Required(ErrorMessage = "ClientSecret is required.")]
-    public string ClientSecret { get; init; }
+    public required string ClientSecret { get; init; }
 
     /// <summary>
     /// The JWT token used for RingCentral API access.
     /// </summary>
     [Required(ErrorMessage = "JwtToken is required.")]
-    public string JwtToken { get; init; }
+    public required string JwtToken { get; init; }
 
     /// <summary>
     /// The RingCentral verification token for subscription.
     /// </summary>
     [Required(ErrorMessage = "WebhookSecret is required.")]
-    public string WebhookSecret { get; init; }
+    public required string WebhookSecret { get; init; }
 }
 

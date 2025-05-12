@@ -48,65 +48,6 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
     }
 
     /// <summary>
-    /// Fetches all extensions from the RingCentral API and displays them in a formatted console table.
-    /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task FetchAllExtensionsAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var response = await _client.Restapi().Account().Extension().List();
-            var totalExtensions = response.records.Length;
-            if (totalExtensions <= 0)
-            {
-                ConsolePrinter.Warning(Constants.Messages.NoSubExist);
-                return;
-            }
-
-            var page = response.paging.page;
-            var pageCount = response.paging.totalPages;
-            ConsolePrinter.Info($"Found {totalExtensions} extensions (Page {page} of {pageCount})");
-            Console.Write(Environment.NewLine);
-
-            var extensions  = response.records
-                .OrderBy(r=>r.name)
-                .ToList();
-
-            ConsolePrinter.PrintExtensionsTable(extensions);
-        }
-        catch (Exception ex)
-        {
-            ConsolePrinter.Error("Failed to fetch all extensions: " + ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Logs the subscription response in a structured format.
-    /// </summary>
-    /// <param name="response">The response object containing subscription details.</param>
-    private static void LogSubscriptionResponse(SubscriptionInfo response)
-    {
-        var sb = new StringBuilder();
-
-        sb.AppendLine($"Subscription ID: {response.id}, Subscription URI: {response.uri}, Event Filters: {string.Join(", ", response.eventFilters)}");
-        sb.AppendLine($"Expiration Time: {response.expirationTime}, Expires In: {response.expiresIn} seconds");
-        sb.AppendLine($"Subscription Status: {response.status}, Creation Time: {response.creationTime}");
-
-        // Adding Webhook Delivery Details if available
-        if (response.deliveryMode != null)
-        {
-            sb.AppendLine("Webhook Delivery Mode:");
-            sb.AppendLine($" Transport Type: {response.deliveryMode.transportType}");
-            sb.AppendLine($" Address: {response.deliveryMode.address}");
-            if (!string.IsNullOrWhiteSpace(response.deliveryMode.secretKey))
-                sb.AppendLine($" • Secret Key: {response.deliveryMode.secretKey}");
-        }
-
-        ConsolePrinter.Info(sb.ToString());
-    }
-
-    /// <summary>
     /// Builds a <see cref="CreateSubscriptionRequest"/> object for receiving voicemail notifications via WebHook.
     /// </summary>
     /// <returns>
@@ -151,6 +92,29 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
             },
             expiresIn = 3600
         };
+    }
+
+    /// <summary>
+    /// Logs the subscription response in a structured format.
+    /// </summary>
+    /// <param name="response">The response object containing subscription details.</param>
+    private static void LogSubscriptionResponse(SubscriptionInfo response)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"Subscription ID: {response.id}, Subscription URI: {response.uri}, Event Filters: {string.Join(", ", response.eventFilters)}");
+        sb.AppendLine($"Expiration Time: {response.expirationTime}, Expires In: {response.expiresIn} seconds");
+        sb.AppendLine($"Subscription Status: {response.status}, Creation Time: {response.creationTime}");
+
+        // Adding Webhook Delivery Details if available
+        if (response.deliveryMode != null)
+        {
+            sb.AppendLine("Webhook Delivery Mode:");
+            sb.AppendLine($" Transport Type: {response.deliveryMode.transportType}");
+            sb.AppendLine($" Address: {response.deliveryMode.address}");
+        }
+
+        ConsolePrinter.Info(sb.ToString());
     }
 
     /// <summary>

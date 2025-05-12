@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Nocturna.Application.Abstractions;
+using Nocturna.Domain.Models;
 using Nocturna.Infrastructure.Helpers;
 
 namespace Nocturna.Infrastructure.Services;
@@ -14,7 +15,7 @@ public class VoicemailService(
 {
     public async Task<HttpResponseData> ProcessVoicemailAsync(HttpRequestData req, string payload, CancellationToken cancellationToken = default)
     {
-        var dbPayloadId = await processor.SaveWebhookPayloadAsync(payload, req.Url.ToString(), cancellationToken);
+        var dbPayloadId = await processor.SavePayloadAsync(payload, cancellationToken);
 
         var payloadDto = parser.ParsePayload(payload);
         if (!parser.IsValidPayload(payloadDto))
@@ -30,17 +31,18 @@ public class VoicemailService(
         }
 
         var message = payloadDto!.Body;
-        var transcriptionId = parser.GetTranscriptionAttachmentId(message);
-        if (transcriptionId is null)
+        var attachmentId= parser.GetTranscriptionAttachmentId(message);
+        if (attachmentId is null)
         {
             logger.LogWarning("Audio transcription skipped: No attachment ID found.");
             return await VoicemailResponder.CreateErrorAsync(req, "No attachment id found", cancellationToken);
         }
 
-        var transcription = await processor.GetTranscriptionAsync(message.Id, transcriptionId.Value, cancellationToken);
+        var voicemailMsg = new VoicemailMessage(payloadDto.Body.Id, attachmentId.Value);
+        var transcription = await processor.GetTranscriptionAsync(voicemailMsg, cancellationToken);
         if (string.IsNullOrWhiteSpace(transcription))
         {
-            logger.LogWarning("Transcription is empty or null for message {MessageId} (attachment {AttachmentId}).", message.Id, transcriptionId);
+            logger.LogWarning("Transcription is empty or null for message {MessageId} (attachment {AttachmentId}).", message.Id, attachmentId);
             return await VoicemailResponder.CreateErrorAsync(req, "Failed to fetch transcription", cancellationToken);
         }
 

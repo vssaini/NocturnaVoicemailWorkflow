@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Nocturna.Application.Abstractions;
 using System.Text.Json;
-using Nocturna.Domain.Models;
+using Nocturna.Domain.Models.RingCentral;
 
 namespace Nocturna.Infrastructure.Services;
 
@@ -37,7 +37,7 @@ public class VoicemailWebhookParser(ILogger<VoicemailWebhookParser> logger) : IV
                eventPath.EndsWith("/voicemail");
     }
 
-    public long? GetTranscriptionAttachmentId(MessageBodyDto message)
+    public long? GetTranscriptionAttachmentId(MessageDto message)
     {
         return message.Attachments.FirstOrDefault(a => a.Type == "AudioTranscription")?.Id;
     }

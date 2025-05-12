@@ -4,6 +4,7 @@ using Nocturna.Domain.Abstractions;
 using Nocturna.Domain.Entities;
 using Nocturna.Domain.Enums;
 using Nocturna.Domain.Models;
+using Nocturna.Domain.Models.RingCentral;
 using Nocturna.Infrastructure.Policies;
 using Polly.Retry;
 
@@ -17,26 +18,26 @@ public class VoicemailProcessor(
 {
     private readonly AsyncRetryPolicy _dbRetryPolicy = DbPollyPolicy.CreateDefaultRetryPolicy(logger);
 
-    public async Task<int> SaveWebhookPayloadAsync(string payload, string requestUrl, CancellationToken cancellationToken = default)
+    public async Task<int> SavePayloadAsync(string payload, CancellationToken cancellationToken = default)
     {
         var payloadId = await _dbRetryPolicy.ExecuteAsync(async ct =>
-            await voicemailRepository.SaveWebhookPayloadAsync(payload, requestUrl, ct), cancellationToken);
+            await voicemailRepository.SaveWebhookPayloadAsync(payload, ct), cancellationToken);
 
         return payloadId;
     }
 
-    public async Task<string> GetTranscriptionAsync(long messageId, long attachmentId, CancellationToken cancellationToken = default)
+    public async Task<string> GetTranscriptionAsync(VoicemailMessage voicemailMessage, CancellationToken cancellationToken = default)
     {
-        var request = new TranscriptionRequest(messageId, attachmentId, ContentDisposition.Inline);
+        var request = new TranscriptionRequest(voicemailMessage.MessageId, voicemailMessage.AttachmentId, ContentDisposition.Inline);
         var transcription = await transcriptFetcher.GetTranscriptionAsync(request, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(transcription))
         {
-            logger.LogWarning("Transcription for message {MessageId} (attachment {AttachmentId}) is empty or null.", messageId, attachmentId);
+            logger.LogWarning("Transcription for message {MessageId} (attachment {AttachmentId}) is empty or null.", voicemailMessage.MessageId, voicemailMessage.AttachmentId);
             return string.Empty;
         }
 
-        logger.LogInformation("Audio transcription for message {MessageId} (attachment {AttachmentId}): {Transcription}", messageId, attachmentId, transcription);
+        logger.LogInformation("Audio transcription for message {MessageId} (attachment {AttachmentId}): {Transcription}", voicemailMessage.MessageId, voicemailMessage.AttachmentId, transcription);
         return transcription;
     }
 
@@ -50,7 +51,7 @@ public class VoicemailProcessor(
 
     private static VoicemailTranscription MapPayloadToTranscription(WebhookPayloadDto payload, string transcription)
     {
-        var message = payload.Body!;
+        var message = payload.Body;
 
         var fromContact = new ContactInfo(message.From.PhoneNumber, message.From.Name);
 

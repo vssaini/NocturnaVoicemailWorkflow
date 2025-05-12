@@ -8,13 +8,12 @@ namespace Nocturna.Infrastructure.Persistence.Repositories;
 
 public class VoicemailRepository(IDbConnectionFactory dbConnectionFactory, ILogger<VoicemailRepository> logger) : IVoicemailRepository
 {
-    public async Task<int> SaveWebhookPayloadAsync(string payload, string requestUrl, CancellationToken cancellationToken = default)
+    public async Task<int> SaveWebhookPayloadAsync(string payload, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Saving webhook payload to database. RequestUrl: {RequestUrl}", requestUrl);
+        logger.LogInformation("Saving webhook payload to database."); // TODO: Show bodyId in each log for tracking (brainstorm)
 
         var dParams = new DynamicParameters();
         dParams.Add("@Payload", payload);
-        dParams.Add("@RequestUrl", requestUrl);
         dParams.Add("@Source", "RingCentral");
         dParams.Add("@DeveloperComments", GetDevComments());
         dParams.Add("@PayloadId", dbType: DbType.Int32, direction: ParameterDirection.Output);

@@ -1,10 +1,10 @@
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
-using Microsoft.DurableTask.Client;
-using Microsoft.Extensions.Logging;
+using Nocturna.Domain.Enums;
 using Nocturna.Domain.Models;
+using Nocturna.Domain.Models.RingCentral;
 using Nocturna.Presentation.Functions.Activities;
+using Nocturna.Presentation.Helpers;
 
 namespace Nocturna.Presentation.Functions;
 
@@ -14,45 +14,33 @@ public static class VoicemailWebhookOrchestrator
     public static async Task<RequestResult> Run(
         [OrchestrationTrigger] TaskOrchestrationContext context)
     {
-        var webhookInput = context.GetInput<WebhookInput>()!;
+        var payload = context.GetInput<string>()!;
 
-        var result = await context.CallActivityAsync<RequestResult>(nameof(ValidateToken), webhookInput);
-        if (result.IsValidationRequest && !string.IsNullOrEmpty(result.ValidationToken))
-        {
-            // Means RingCentral is setting up Webhook; and so we must return
-            return result;
-        }
+        var dbPayloadId = await context.CallActivityAsync<int>(nameof(SavePayload), payload);
+        var payloadDto = await context.CallActivityAsync<WebhookPayloadDto>(nameof(ParsePayload), payload);
 
-        await context.CallActivityAsync<RequestResult>(nameof(VerifyToken), webhookInput);
+        var isValid = await context.CallActivityAsync<bool>(nameof(ValidatePayload), payloadDto);
+        if (!isValid)
+            return RequestResult.Create(RequestStatus.Error, "Invalid payload");
 
-        result = await context.CallActivityAsync<RequestResult>("ProcessVoicemail", webhookInput);
-        return result;
-    }
+        var isVoicemail = await context.CallActivityAsync<bool>(nameof(IsVoicemailEvent), payloadDto);
+        if (!isVoicemail)
+            return RequestResult.Create(RequestStatus.Error, "Invalid event type");
 
-    [Function(nameof(SayHello))]
-    public static string SayHello([ActivityTrigger] string name, FunctionContext executionContext)
-    {
-        ILogger logger = executionContext.GetLogger("SayHello");
-        logger.LogInformation("Saying hello to {name}.", name);
-        return $"Hello {name}!";
-    }
+        var attachmentId = await AttachmentRetryHandler.FetchWithRetryAsync(context, payloadDto);
+        if (attachmentId is null)
+            return RequestResult.Create(RequestStatus.Error, "Transcription attachment ID not found after retries");
 
-    [Function("Function_HttpStart")]
-    public static async Task<HttpResponseData> HttpStart(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
-        [DurableClient] DurableTaskClient client,
-        FunctionContext executionContext)
-    {
-        ILogger logger = executionContext.GetLogger("Function_HttpStart");
+        var voicemailMsg = new VoicemailMessage(payloadDto.Body.Id, attachmentId.Value);
+        var transcription = await context.CallActivityAsync<string>(nameof(FetchTranscription), voicemailMsg);
+        if (string.IsNullOrWhiteSpace(transcription))
+            return RequestResult.Create(RequestStatus.Error, "Failed to fetch transcription");
 
-        // Function input comes from the request content.
-        string instanceId = await client.ScheduleNewOrchestrationInstanceAsync(
-            nameof(VoicemailWebhookOrchestrator));
+        var transInput = new TranscriptionInput(payloadDto, transcription, dbPayloadId);
+        await context.CallActivityAsync(nameof(SaveTranscription), transInput);
 
-        logger.LogInformation("Started orchestration with ID = '{instanceId}'.", instanceId);
+        await context.CallActivityAsync("WriteTranscriptionToFtpActivity", transInput);
 
-        // Returns an HTTP 202 response with an instance management payload.
-        // See https://learn.microsoft.com/azure/azure-functions/durable/durable-functions-http-api#start-orchestration
-        return await client.CreateCheckStatusResponseAsync(req, instanceId);
+        return RequestResult.Create(RequestStatus.Success, "Transcription saved successfully!", transcription);
     }
 }

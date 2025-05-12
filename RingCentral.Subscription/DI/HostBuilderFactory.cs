@@ -33,7 +33,7 @@ public static class HostBuilderFactory
         return Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((_, config) =>
             {
-                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                config.AddJsonFile("appsettings.console.json", optional: false, reloadOnChange: true);
             })
             .ConfigureServices((context, services) =>
             {

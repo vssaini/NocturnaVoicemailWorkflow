@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Nocturna.Application.Abstractions;
 using Nocturna.Domain.Models;
+using Nocturna.Domain.Models.RingCentral;
 
 namespace Nocturna.Infrastructure.Services;
 
@@ -21,13 +22,11 @@ public class TranscriptionWriter(IFtpFileService ftpFileService, ILogger<Transcr
     {
         var message = payload.Body!;
 
-        return new TranscriptionEntry
-        {
-            Uuid = payload.Uuid,
-            CreationTime = message.CreationTime,
-            FromPhoneNumber = message.From.PhoneNumber,
-            ToPhoneNumber = message.To.First().PhoneNumber,
-            Transcription = transcription
-        };
+        return new TranscriptionEntry(payload.Uuid,
+            message.CreationTime,
+            message.From.PhoneNumber,
+            message.To.First().PhoneNumber,
+            transcription
+        );
     }
 }
