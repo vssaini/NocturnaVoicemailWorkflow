@@ -1,5 +1,4 @@
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Nocturna.Application.Abstractions;
 using Nocturna.Domain.Models;
@@ -8,7 +7,7 @@ namespace Nocturna.Presentation.Functions.Activities;
 
 public class FetchTranscription(IVoicemailProcessor processor)
 {
-    [FunctionName(nameof(FetchTranscription))]
+    [Function(nameof(FetchTranscription))]
     public async Task<string?> Run(
         [ActivityTrigger] VoicemailMessage voicemailMsg,
         FunctionContext context,

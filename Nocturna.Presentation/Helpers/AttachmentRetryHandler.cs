@@ -25,7 +25,7 @@ public static class AttachmentRetryHandler
     {
         var logger = context.CreateReplaySafeLogger(typeof(AttachmentRetryHandler));
 
-        var initialAttachmentId = await context.CallActivityAsync<long?>(nameof(FetchTranAttachId), payloadDto);
+        var initialAttachmentId = await context.CallActivityAsync<long?>(nameof(FetchTransAttachId), payloadDto);
         if (initialAttachmentId.HasValue)
             return initialAttachmentId;
 
@@ -95,7 +95,7 @@ public static class AttachmentRetryHandler
         var fireAt = context.CurrentUtcDateTime.Add(AddJitter(delay));
         await context.CreateTimer(fireAt, CancellationToken.None);
 
-        var attachmentId = await context.CallActivityAsync<long?>(nameof(FetchTranAttachIdFromRingCentral), payloadDto);
+        var attachmentId = await context.CallActivityAsync<long?>(nameof(FetchTransAttachIdFromRc), payloadDto);
 
         if (attachmentId.HasValue)
         {

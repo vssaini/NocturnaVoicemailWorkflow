@@ -16,7 +16,7 @@ public class IsVoicemailEvent(IVoicemailWebhookParser parser)
         if (parser.IsVoicemailEvent(payloadDto))
             return true;
 
-        logger.LogWarning("Unsupported event type: {Event}. Only 'voicemail' events are supported.", payloadDto!.Event);
+        logger.LogWarning("Unsupported event type: {Event}. Only 'voicemail' events are supported.", payloadDto.Event);
         return false;
     }
 }

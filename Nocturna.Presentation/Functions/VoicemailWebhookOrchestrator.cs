@@ -29,7 +29,7 @@ public static class VoicemailWebhookOrchestrator
 
         var attachmentId = await AttachmentRetryHandler.FetchWithRetryAsync(context, payloadDto);
         if (attachmentId is null)
-            return RequestResult.Create(RequestStatus.Error, "Transcription attachment ID not found after retries");
+            return RequestResult.Create(RequestStatus.Error, "Transcription attachment Id not found after retries");
 
         var voicemailMsg = new VoicemailMessage(payloadDto.Body.Id, attachmentId.Value);
         var transcription = await context.CallActivityAsync<string>(nameof(FetchTranscription), voicemailMsg);

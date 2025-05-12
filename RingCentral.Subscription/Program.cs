@@ -9,12 +9,22 @@ class Program
 {
     static async Task Main()
     {
-        ConsolePrinter.PrintBanner();
+        try
+        {
+            ConsolePrinter.PrintBanner();
 
-        var host = HostBuilderFactory.CreateHost();
-        await host.StartAsync();
+            var host = HostBuilderFactory.CreateHost();
+            await host.StartAsync();
 
-        var menuService = host.Services.GetRequiredService<MenuService>();
-        await menuService.RunAsync();
+            var menuService = host.Services.GetRequiredService<MenuService>();
+            await menuService.RunAsync();
+        }
+        catch (Exception ex)
+        {
+            ConsolePrinter.Error($"An unhandled exception occurred: {ex.Message}");
+            ConsolePrinter.Error(ex.ToString());
+
+            Console.ReadKey();
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace Nocturna.Presentation.Functions.Activities;
 
 public class ParsePayload(IVoicemailWebhookParser parser)
 {
-    [FunctionName(nameof(ParsePayload))]
+    [Function(nameof(ParsePayload))]
     public WebhookPayloadDto Run(
         [ActivityTrigger] string payload)
     {

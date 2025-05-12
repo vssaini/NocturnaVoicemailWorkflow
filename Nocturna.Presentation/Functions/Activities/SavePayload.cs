@@ -6,7 +6,7 @@ namespace Nocturna.Presentation.Functions.Activities;
 
 public class SavePayload(IVoicemailProcessor processor)
 {
-    [FunctionName(nameof(SavePayload))]
+    [Function(nameof(SavePayload))]
     public async Task<int> Run(
         [ActivityTrigger] string payload)
     {
