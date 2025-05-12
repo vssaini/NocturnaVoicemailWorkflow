@@ -41,6 +41,6 @@ public static class VoicemailWebhookOrchestrator
 
         await context.CallActivityAsync(nameof(WriteTranscriptionToFtp), transInput);
 
-        return RequestResult.Create(RequestStatus.Success, "Transcription saved successfully!", transcription);
+        return RequestResult.Create(RequestStatus.Success, "Transcription saved successfully", transcription);
     }
 }

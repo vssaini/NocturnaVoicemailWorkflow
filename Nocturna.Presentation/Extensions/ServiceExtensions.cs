@@ -2,8 +2,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Nocturna.Application.Abstractions;
-using Nocturna.Application.UseCases;
 using Serilog;
 
 namespace Nocturna.Presentation.Extensions;
@@ -22,7 +20,6 @@ public static class ServiceExtensions
     {
         services.AddApplicationInsights();
         services.AddLogging(configuration);
-        services.AddDependencies();
     }
 
     private static void AddApplicationInsights(this IServiceCollection services)
@@ -63,10 +60,5 @@ public static class ServiceExtensions
 
         // To find out why Serilog is not logging to specific sink, enable self logging.
         //Serilog.Debugging.SelfLog.Enable(Console.Error);
-    }
-
-    private static void AddDependencies(this IServiceCollection services)
-    {
-        services.AddScoped<IWebhookUseCase, WebhookUseCase>();
     }
 }
