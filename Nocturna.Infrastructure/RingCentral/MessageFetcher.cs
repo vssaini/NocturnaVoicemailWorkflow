@@ -10,14 +10,14 @@ namespace Nocturna.Infrastructure.RingCentral;
 
 public class MessageFetcher(IRingCentralMediaApi mediaApi, ILogger<MessageFetcher> logger) : IMessageFetcher
 {
-    private readonly AsyncRetryPolicy _apiRetryPolicy = ApiPollyPolicy.CreateHttpRetryPolicy(logger);
+    private readonly AsyncRetryPolicy _apiRetryPolicy = RingCentralApiPolicy.CreateHttpRetryPolicy(logger);
 
     public async Task<MessageDto> GetMessageAsync(MessageRequest request, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Calling RingCentral API to fetch message for message id {MessageId}", request.MessageId);
 
         return await _apiRetryPolicy.ExecuteAsync(() =>
-            mediaApi.GetMessage(
+            mediaApi.GetMessageAsync(
                 request.MessageId,
                 cancellationToken));
     }

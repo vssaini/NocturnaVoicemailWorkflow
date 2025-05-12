@@ -16,7 +16,7 @@ public class VoicemailProcessor(
     ILogger<VoicemailProcessor> logger)
     : IVoicemailProcessor
 {
-    private readonly AsyncRetryPolicy _dbRetryPolicy = DbPollyPolicy.CreateDefaultRetryPolicy(logger);
+    private readonly AsyncRetryPolicy _dbRetryPolicy = DbPolicy.CreateDefaultRetryPolicy(logger);
 
     public async Task<int> SavePayloadAsync(string payload, CancellationToken cancellationToken = default)
     {

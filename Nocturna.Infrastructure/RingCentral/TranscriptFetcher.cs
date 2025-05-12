@@ -9,14 +9,14 @@ namespace Nocturna.Infrastructure.RingCentral;
 
 public class TranscriptFetcher(IRingCentralMediaApi mediaApi, ILogger<TranscriptFetcher> logger) : ITranscriptFetcher
 {
-    private readonly AsyncRetryPolicy _apiRetryPolicy = ApiPollyPolicy.CreateHttpRetryPolicy(logger);
+    private readonly AsyncRetryPolicy _apiRetryPolicy = RingCentralApiPolicy.CreateHttpRetryPolicy(logger);
 
     public async Task<string> GetTranscriptionAsync(TranscriptionRequest request, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Calling RingCentral API to fetch transcription for message {MessageId} (attachment {AttachmentId})", request.MessageId, request.AttachmentId);
 
         return await _apiRetryPolicy.ExecuteAsync(() =>
-            mediaApi.GetMessageAttachmentContent(
+            mediaApi.GetMessageAttachmentContentAsync(
                 request.MessageId,
                 request.AttachmentId,
                 request.ContentDisposition.ToString(),

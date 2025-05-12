@@ -107,6 +107,5 @@ public static class ServiceRegistration
         services.AddScoped<IFtpFileService, FtpFileService>();
 
         services.AddScoped<ITranscriptionWriter, TranscriptionWriter>();
-        services.AddScoped<IVoicemailService, VoicemailService>();
     }
 }

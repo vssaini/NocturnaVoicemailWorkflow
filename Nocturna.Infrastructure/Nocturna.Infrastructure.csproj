@@ -27,8 +27,4 @@
     <ProjectReference Include="..\Nocturna.Domain\Nocturna.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
-
 </Project>

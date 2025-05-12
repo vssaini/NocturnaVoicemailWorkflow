@@ -8,7 +8,7 @@ namespace Nocturna.Infrastructure.Policies;
 /// <summary>
 /// Provides a retry policy for database operations using Polly.
 /// </summary>
-public static class DbPollyPolicy
+public static class DbPolicy
 {
     /// <summary>
     /// Creates a default asynchronous retry policy for transient SQL or general exceptions.

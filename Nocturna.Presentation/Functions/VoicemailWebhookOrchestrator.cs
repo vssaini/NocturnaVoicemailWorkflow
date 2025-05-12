@@ -39,7 +39,7 @@ public static class VoicemailWebhookOrchestrator
         var transInput = new TranscriptionInput(payloadDto, transcription, dbPayloadId);
         await context.CallActivityAsync(nameof(SaveTranscription), transInput);
 
-        await context.CallActivityAsync("WriteTranscriptionToFtpActivity", transInput);
+        await context.CallActivityAsync(nameof(WriteTranscriptionToFtp), transInput);
 
         return RequestResult.Create(RequestStatus.Success, "Transcription saved successfully!", transcription);
     }
