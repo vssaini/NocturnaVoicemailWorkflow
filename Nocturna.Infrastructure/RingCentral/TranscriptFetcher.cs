@@ -13,7 +13,7 @@ public class TranscriptFetcher(IRingCentralMediaApi mediaApi, ILogger<Transcript
 
     public async Task<string> GetTranscriptionAsync(TranscriptionRequest request, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Calling RingCentral API to fetch transcription for message {MessageId} (attachment {AttachmentId})", request.MessageId, request.AttachmentId);
+        logger.LogInformation("Calling RingCentral Media API to fetch transcription for message {MessageId} (attachment {AttachmentId})", request.MessageId, request.AttachmentId);
 
         return await _apiRetryPolicy.ExecuteAsync(() =>
             mediaApi.GetMessageAttachmentContentAsync(

@@ -77,6 +77,14 @@ public static class ServiceRegistration
     {
         var refitSettings = CreateRefitSettings();
 
+        services.AddRefitClient<IRingCentralApi>(refitSettings)
+            .ConfigureHttpClient((provider, client) =>
+            {
+                var rcSettings = provider.GetRequiredService<IOptions<RingCentralSettings>>().Value;
+                client.BaseAddress = new Uri(rcSettings.ServerUrl);
+            })
+            .AddHttpMessageHandler<RingCentralJwtAuthHandler>();
+
         services.AddRefitClient<IRingCentralMediaApi>(refitSettings)
             .ConfigureHttpClient((provider, client) =>
             {
@@ -107,5 +115,6 @@ public static class ServiceRegistration
         services.AddScoped<IFtpFileService, FtpFileService>();
 
         services.AddScoped<ITranscriptionWriter, TranscriptionWriter>();
+        services.AddScoped<IMessageFetcher, MessageFetcher>();
     }
 }

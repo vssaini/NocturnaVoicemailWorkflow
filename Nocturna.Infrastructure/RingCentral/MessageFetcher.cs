@@ -8,7 +8,7 @@ using Polly.Retry;
 
 namespace Nocturna.Infrastructure.RingCentral;
 
-public class MessageFetcher(IRingCentralMediaApi mediaApi, ILogger<MessageFetcher> logger) : IMessageFetcher
+public class MessageFetcher(IRingCentralApi rcApi, ILogger<MessageFetcher> logger) : IMessageFetcher
 {
     private readonly AsyncRetryPolicy _apiRetryPolicy = RingCentralApiPolicy.CreateHttpRetryPolicy(logger);
 
@@ -17,7 +17,7 @@ public class MessageFetcher(IRingCentralMediaApi mediaApi, ILogger<MessageFetche
         logger.LogInformation("Calling RingCentral API to fetch message for message id {MessageId}", request.MessageId);
 
         return await _apiRetryPolicy.ExecuteAsync(() =>
-            mediaApi.GetMessageAsync(
+            rcApi.GetMessageAsync(
                 request.MessageId,
                 cancellationToken));
     }
