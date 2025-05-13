@@ -13,12 +13,12 @@ namespace Nocturna.Infrastructure.Services;
 
 public class TokenService(IOptions<RingCentralSettings> options,
     IRingCentralClientFactory clientFactory,
-    ITokenRepository tokenRepository, 
+    ITokenRepository tokenRepository,
     ILogger<TokenService> logger) : ITokenService
 {
     private readonly RingCentralSettings _rcSettings = options.Value;
-
     private readonly AsyncRetryPolicy _apiRetryPolicy = RingCentralApiPolicy.CreateHttpRetryPolicy(logger);
+    private readonly TimeSpan _bufferFiveMinutes = TimeSpan.FromMinutes(5);
 
     // Ref - https://developers.ringcentral.com/guide/authentication/refresh-tokens
     // RingCentral access tokens last 1 hour; refresh tokens are valid for 7 days.
@@ -41,8 +41,8 @@ public class TokenService(IOptions<RingCentralSettings> options,
         return storedToken.AccessToken;
     }
 
-    private static bool IsAccessTokenExpired(RingCentralToken token)
-        => token.AccessTokenExpiresAt <= DateTime.UtcNow;
+    private bool IsAccessTokenExpired(RingCentralToken token) =>
+        token.AccessTokenExpiresAt <= DateTime.UtcNow.Add(_bufferFiveMinutes);
 
     private async Task<string> AuthorizeWithJwtAsync()
     {
@@ -100,6 +100,6 @@ public class TokenService(IOptions<RingCentralSettings> options,
         return client.token.access_token;
     }
 
-    private static bool IsRefreshTokenExpired(RingCentralToken token)
-        => token.RefreshTokenExpiresAt <= DateTime.UtcNow;
+    private bool IsRefreshTokenExpired(RingCentralToken token) =>
+         token.RefreshTokenExpiresAt <= DateTime.UtcNow.Add(_bufferFiveMinutes);
 }
