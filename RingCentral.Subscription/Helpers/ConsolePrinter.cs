@@ -85,7 +85,7 @@ public static class ConsolePrinter
         Console.Write(Environment.NewLine);
         Console.ResetColor();
     }
-    
+
     public static void PrintExtensionsTable(List<GetExtensionListInfoResponse> extensions)
     {
         const int idWidth = 12;
@@ -114,7 +114,7 @@ public static class ConsolePrinter
         foreach (var ext in extensions)
         {
             string id = ext.id.ToString()!.PadRight(idWidth - 1);
-            string name = (ext.name ?? "").PadRight(nameWidth - 1);
+            string name = (ext.contact != null ? $"{ext.contact.firstName} {ext.contact.lastName}" : "").PadRight(nameWidth - 1);
             string extNumber = (ext.extensionNumber ?? "").PadRight(extNumWidth - 1);
             string status = (ext.status ?? "").PadRight(statusWidth - 1);  // New Status field
 

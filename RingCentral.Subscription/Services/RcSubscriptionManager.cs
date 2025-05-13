@@ -6,52 +6,47 @@ using System.Text;
 namespace RingCentral.Subscription.Services;
 
 /// <summary>
-/// Manages RingCentral webhook subscriptions for voicemail notifications.
+/// Manages RingCentral subscription-related operations such as creating, fetching, and deleting subscriptions,
+/// as well as retrieving extension details.
 /// </summary>
 public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<SubscriptionSetting> options)
 {
-    // Ref - https://developers.ringcentral.com/api-reference/Voicemail-Message-Event
-
     private readonly SubscriptionSetting _subscription = options.Value;
     private readonly RestClient _client = rcProvider.Client!;
 
     /// <summary>
-    /// Event filter for voicemail messages.
+    /// Fetches a specific extension by ID and displays its details if it is enabled and of type 'User'.
     /// </summary>
-    private const string VoiceMailFilter = "/restapi/v1.0/account/~/extension/~/voicemail";
-
-    private const string MessageFilter = "/restapi/v1.0/account/~/extension/~/message-store/instant?type=SMS";
-
-    /// <summary>
-    /// Asynchronously creates a webhook subscription for receiving voicemail notifications from RingCentral.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    /// <remarks>
-    /// Builds a subscription request for voicemail events, sends it to the RingCentral API,
-    /// and logs the response details to the console. In case of failure, logs the error message.
-    /// </remarks>
-    public async Task CreateSubscriptionForNotificationAsync()
+    /// <param name="extensionId">The ID of the extension to fetch.</param>
+    public async Task FetchExtensionAsync(string extensionId)
     {
         try
         {
-            var request = BuildSubscriptionRequestForVoiceMail();
-            //var request = BuildSubscriptionRequestForMessage();
-            var response = await _client.Restapi().Subscription().Post(request);
+            var response = await _client.Restapi().Account().Extension(extensionId).Get();
 
-            ConsolePrinter.Success("Subscription created successfully.");
-            LogSubscriptionResponse(response);
+            if (response.status != "Enabled" || response.type != "User")
+            {
+                ConsolePrinter.Warning($"Extension {extensionId} is not a user-enabled extension.");
+                return;
+            }
+
+            ConsolePrinter.Info($"Extension ID: {response.id}");
+            ConsolePrinter.Info($"Name: {response.name}");
+            ConsolePrinter.Info($"Email: {response.contact?.email}");
+            ConsolePrinter.Info($"Type: {response.type}");
+            ConsolePrinter.Info($"Status: {response.status}");
+            ConsolePrinter.Info($"Extension Number: {response.extensionNumber}");
         }
         catch (Exception ex)
         {
-            ConsolePrinter.Error("Subscription failed: " + ex.Message);
+            ConsolePrinter.Error($"Failed to fetch extension {extensionId}: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Fetches all extensions from the RingCentral API and displays them in a formatted console table.
+    /// Fetches all extensions and displays the ones that are enabled user extensions.
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="cancellationToken">Optional cancellation token.</param>
     public async Task FetchAllExtensionsAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -66,13 +61,15 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
 
             var page = response.paging.page;
             var pageCount = response.paging.totalPages;
-            ConsolePrinter.Info($"Found {totalExtensions} extensions (Page {page} of {pageCount})");
-            Console.Write(Environment.NewLine);
 
-            var extensions  = response.records
-                .OrderBy(r=>r.name)
+            var extensions = response.records
+                .OrderBy(r => r.name)
+                .Where(r => r.status == "Enabled" && r.type == "User")
                 .ToList();
 
+            var userAndEnabledExtensions = extensions.Count;
+
+            ConsolePrinter.Info($"Found {totalExtensions} extensions (Page {page}/{pageCount}), {userAndEnabledExtensions} user-enabled.{Environment.NewLine}");
             ConsolePrinter.PrintExtensionsTable(extensions);
         }
         catch (Exception ex)
@@ -82,81 +79,70 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
     }
 
     /// <summary>
-    /// Logs the subscription response in a structured format.
+    /// Creates a voicemail notification subscription for all user-enabled extensions.
     /// </summary>
-    /// <param name="response">The response object containing subscription details.</param>
-    private static void LogSubscriptionResponse(SubscriptionInfo response)
+    public async Task CreateVoicemailSubscriptionAsync()
     {
-        var sb = new StringBuilder();
-
-        sb.AppendLine($"Subscription ID: {response.id}, Subscription URI: {response.uri}, Event Filters: {string.Join(", ", response.eventFilters)}");
-        sb.AppendLine($"Expiration Time: {response.expirationTime}, Expires In: {response.expiresIn} seconds");
-        sb.AppendLine($"Subscription Status: {response.status}, Creation Time: {response.creationTime}");
-
-        // Adding Webhook Delivery Details if available
-        if (response.deliveryMode != null)
+        try
         {
-            sb.AppendLine("Webhook Delivery Mode:");
-            sb.AppendLine($" Transport Type: {response.deliveryMode.transportType}");
-            sb.AppendLine($" Address: {response.deliveryMode.address}");
-            if (!string.IsNullOrWhiteSpace(response.deliveryMode.secretKey))
-                sb.AppendLine($" • Secret Key: {response.deliveryMode.secretKey}");
+            const string voiceMailFilter = "/restapi/v1.0/account/~/extension/~/voicemail";
+            var voicemailFilters = new[] { voiceMailFilter };
+            var request = BuildSubscriptionRequestForVoiceMail(voicemailFilters);
+            var response = await _client.Restapi().Subscription().Post(request);
+
+            ConsolePrinter.Success("Subscription created successfully.");
+            LogSubscriptionResponse(response);
         }
-
-        ConsolePrinter.Info(sb.ToString());
-    }
-
-    /// <summary>
-    /// Builds a <see cref="CreateSubscriptionRequest"/> object for receiving voicemail notifications via WebHook.
-    /// </summary>
-    /// <returns>
-    /// A configured <see cref="CreateSubscriptionRequest"/> object including event filters, 
-    /// delivery mode, and expiration settings for voicemail WebHook notifications.
-    /// </returns>
-    /// <remarks>
-    /// Reference: https://developers.ringcentral.com/guide/notifications/webhooks/receiving
-    /// </remarks>
-    private CreateSubscriptionRequest BuildSubscriptionRequestForVoiceMail()
-    {
-        var verificationToken = TokenGenerator.GenerateVerificationToken(_subscription.Environment);
-        ConsolePrinter.Info("Verification token for Azure Function (WebhookSecret): " + verificationToken);
-
-        return new CreateSubscriptionRequest
+        catch (Exception ex)
         {
-            eventFilters = [VoiceMailFilter],
-            deliveryMode = new NotificationDeliveryModeRequest
-            {
-                transportType = "WebHook",
-                address = rcProvider.DeliveryAddress,
-                verificationToken = verificationToken
-            },
-            expiresIn = _subscription.ExpiresInSeconds
-        };
+            ConsolePrinter.Error("Failed to create subscription: " + ex.Message);
+        }
     }
 
     /// <summary>
-    /// Builds a subscription request for message notifications.
+    /// Creates voicemail notification subscription for a specific set of extension IDs.
     /// </summary>
-    /// <returns>A populated <see cref="CreateSubscriptionRequest"/> object.</returns>
-    // ReSharper disable once UnusedMember.Local
-    private CreateSubscriptionRequest BuildSubscriptionRequestForMessage()
+    /// <param name="extensionIds">Array of extension IDs to subscribe to voicemail events.</param>
+    public async Task CreateVoicemailSubscriptionAsync(int[] extensionIds)
     {
-        return new CreateSubscriptionRequest
+        try
         {
-            eventFilters = [MessageFilter],
-            deliveryMode = new NotificationDeliveryModeRequest
-            {
-                transportType = "WebHook",
-                address = rcProvider.DeliveryAddress
-            },
-            expiresIn = 3600
-        };
+            var voicemailFilters = extensionIds
+                .Select(extensionId => $"/restapi/v1.0/account/~/extension/{extensionId}/voicemail")
+                .ToList();
+
+            var request = BuildSubscriptionRequestForVoiceMail(voicemailFilters.ToArray());
+            var response = await _client.Restapi().Subscription().Post(request);
+
+            ConsolePrinter.Success("Subscription for extensions created successfully.");
+            LogSubscriptionResponse(response);
+        }
+        catch (Exception ex)
+        {
+            ConsolePrinter.Error("Failed to create subscription for extensions: " + ex.Message);
+        }
     }
 
     /// <summary>
-    /// Fetch all subscriptions existing in RingCentral.
+    /// Fetches and logs details of a specific subscription by its ID.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="subscriptionId">The ID of the subscription to retrieve.</param>
+    public async Task FetchSubscriptionAsync(string subscriptionId)
+    {
+        try
+        {
+            var subscription = await _client.Restapi().Subscription(subscriptionId).Get();
+            LogSubscriptionResponse(subscription);
+        }
+        catch (Exception ex)
+        {
+            ConsolePrinter.Error("Failed to fetch subscription: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Fetches and logs all current subscriptions associated with the account.
+    /// </summary>
     public async Task FetchAllSubscriptionsAsync()
     {
         try
@@ -181,7 +167,24 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
     }
 
     /// <summary>
-    /// Delete all subscriptions.
+    /// Deletes a specific subscription by its ID.
+    /// </summary>
+    /// <param name="subscriptionId">The ID of the subscription to delete.</param>
+    public async Task DeleteSubscriptionAsync(string subscriptionId)
+    {
+        try
+        {
+            await _client.Restapi().Subscription(subscriptionId).Delete();
+            ConsolePrinter.Success("Subscription " + subscriptionId + " deleted.");
+        }
+        catch (Exception ex)
+        {
+            ConsolePrinter.Error("Failed to delete subscription: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Deletes all current subscriptions from the account.
     /// </summary>
     public async Task DeleteAllSubscriptionsAsync()
     {
@@ -207,20 +210,52 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
         }
     }
 
+    // Helpers
+
     /// <summary>
-    /// Deletes a specific subscription by its ID.
+    /// Logs detailed information about a subscription.
     /// </summary>
-    /// <param name="subscriptionId">The ID of the subscription to delete.</param>
-    public async Task DeleteSubscriptionAsync(string subscriptionId)
+    /// <param name="response">The subscription response object to log.</param>
+    private static void LogSubscriptionResponse(SubscriptionInfo response)
     {
-        try
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"Subscription ID: {response.id}, Subscription URI: {response.uri}, Event Filters: {string.Join(", ", response.eventFilters)}");
+        sb.AppendLine($"Expiration Time: {response.expirationTime}, Expires In: {response.expiresIn} seconds");
+        sb.AppendLine($"Subscription Status: {response.status}, Creation Time: {response.creationTime}");
+
+        if (response.deliveryMode != null)
         {
-            await _client.Restapi().Subscription(subscriptionId).Delete();
-            ConsolePrinter.Success("Subscription " + subscriptionId + " deleted.");
+            sb.AppendLine("Webhook Delivery Mode:");
+            sb.AppendLine($" Transport Type: {response.deliveryMode.transportType}");
+            sb.AppendLine($" Address: {response.deliveryMode.address}");
+            if (!string.IsNullOrWhiteSpace(response.deliveryMode.secretKey))
+                sb.AppendLine($" • Secret Key: {response.deliveryMode.secretKey}");
         }
-        catch (Exception ex)
+
+        ConsolePrinter.Info(sb.ToString());
+    }
+
+    /// <summary>
+    /// Builds a CreateSubscriptionRequest object for voicemail filters.
+    /// </summary>
+    /// <param name="voicemailFilters">Array of voicemail event filters.</param>
+    /// <returns>A populated CreateSubscriptionRequest object.</returns>
+    private CreateSubscriptionRequest BuildSubscriptionRequestForVoiceMail(string[] voicemailFilters)
+    {
+        var verificationToken = TokenGenerator.GenerateVerificationToken(_subscription.Environment);
+        ConsolePrinter.Info("Verification token for Azure Function (WebhookSecret): " + verificationToken);
+
+        return new CreateSubscriptionRequest
         {
-            ConsolePrinter.Error("Failed to delete subscription: " + ex.Message);
-        }
+            eventFilters = voicemailFilters,
+            deliveryMode = new NotificationDeliveryModeRequest
+            {
+                transportType = "WebHook",
+                address = rcProvider.DeliveryAddress,
+                verificationToken = verificationToken
+            },
+            expiresIn = _subscription.ExpiresInSeconds
+        };
     }
 }
