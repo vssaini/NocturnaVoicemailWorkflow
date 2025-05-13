@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using Nocturna.Application.Abstractions;
 using Nocturna.Domain.Abstractions;
+using Nocturna.Domain.Config;
 using Nocturna.Infrastructure.Persistence;
 using Nocturna.Infrastructure.Persistence.Repositories;
 using Nocturna.Infrastructure.RingCentral;
@@ -10,7 +11,6 @@ using Nocturna.Infrastructure.RingCentral.Handlers;
 using Nocturna.Infrastructure.Services;
 using Refit;
 using System.Text.Json;
-using Nocturna.Domain.Config;
 
 namespace Nocturna.Infrastructure.DI;
 
@@ -102,6 +102,7 @@ public static class ServiceRegistration
     {
         services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
         services.AddScoped<IVoicemailRepository, VoicemailRepository>();
+        services.AddScoped<ITokenRepository, TokenRepository>();
 
         services.AddScoped<IValidationTokenService, ValidationTokenService>();
         services.AddScoped<ISecurityService, SecurityService>();
@@ -116,5 +117,8 @@ public static class ServiceRegistration
 
         services.AddScoped<ITranscriptionWriter, TranscriptionWriter>();
         services.AddScoped<IMessageFetcher, MessageFetcher>();
+
+        services.AddSingleton<IRingCentralClientFactory, RingCentralClientFactory>();
+        services.AddScoped<ITokenService, TokenService>();
     }
 }
