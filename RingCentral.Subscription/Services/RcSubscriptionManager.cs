@@ -166,6 +166,64 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
         }
     }
 
+    public async Task AddExtensionsToSubscriptionAsync(string subscriptionId, int[] extensionIdsToAdd)
+    {
+        try
+        {
+            var filters = await GetSubscriptionFiltersAsync(subscriptionId);
+
+            foreach (var extId in extensionIdsToAdd)
+            {
+                var newFilter = $"/restapi/v1.0/account/~/extension/{extId}/voicemail";
+                if (!filters.Contains(newFilter))
+                    filters.Add(newFilter);
+            }
+
+            var updateRequest = new UpdateSubscriptionRequest { eventFilters = filters.ToArray() };
+
+            await _client.Restapi().Subscription(subscriptionId).Put(updateRequest);
+            ConsolePrinter.Success("Extensions added to subscription successfully.");
+        }
+        catch (Exception ex)
+        {
+            ConsolePrinter.Error("Failed to add extensions to subscription: " + ex.Message);
+        }
+    }
+
+    private async Task<List<string>> GetSubscriptionFiltersAsync(string subscriptionId)
+    {
+        var subscription = await _client.Restapi().Subscription(subscriptionId).Get();
+
+        var filters = new List<string>();
+        if (subscription.eventFilters != null)
+            filters = subscription.eventFilters.ToList();
+
+        return filters;
+    }
+
+    public async Task RemoveExtensionsFromSubscriptionAsync(string subscriptionId, int[] extensionIdsToRemove)
+    {
+        try
+        {
+            var filters = await GetSubscriptionFiltersAsync(subscriptionId);
+
+            foreach (var extId in extensionIdsToRemove)
+            {
+                var filterToRemove = $"/restapi/v1.0/account/~/extension/{extId}/voicemail";
+                filters.Remove(filterToRemove);
+            }
+
+            var updateRequest = new UpdateSubscriptionRequest { eventFilters = filters.ToArray() };
+
+            await _client.Restapi().Subscription(subscriptionId).Put(updateRequest);
+            ConsolePrinter.Success("Extensions removed from subscription successfully.");
+        }
+        catch (Exception ex)
+        {
+            ConsolePrinter.Error("Failed to remove extensions from subscription: " + ex.Message);
+        }
+    }
+
     /// <summary>
     /// Deletes a specific subscription by its ID.
     /// </summary>

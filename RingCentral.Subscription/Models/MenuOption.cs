@@ -36,6 +36,16 @@ public enum MenuOption
     FetchAllSubscriptions,
 
     /// <summary>
+    /// Option to add extensions to a subscription.
+    /// </summary>
+    AddExtensionsToSubscription,
+
+    /// <summary>
+    /// Options to remove extensions from a subscription.
+    /// </summary>
+    RemoveExtensionsFromSubscription,
+
+    /// <summary>
     /// Option to delete a subscription by its ID.
     /// </summary>
     DeleteSubscription,

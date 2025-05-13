@@ -37,10 +37,12 @@ public class MenuService
             Console.WriteLine($"{(int)MenuOption.CreateSubscriptionForExtensions}. Create Subscription for Extensions");
             Console.WriteLine($"{(int)MenuOption.FetchSubscription}. Fetch Subscription");
             Console.WriteLine($"{(int)MenuOption.FetchAllSubscriptions}. Fetch All Subscriptions");
+            Console.WriteLine($"{(int)MenuOption.AddExtensionsToSubscription}. Add Extensions to Subscription");
+            Console.WriteLine($"{(int)MenuOption.RemoveExtensionsFromSubscription}. Remove Extensions from Subscription");
             Console.WriteLine($"{(int)MenuOption.DeleteSubscription}. Delete Subscription");
             Console.WriteLine($"{(int)MenuOption.DeleteAllSubscriptions}. Delete All Subscriptions");
             Console.WriteLine($"{(int)MenuOption.Exit}. Exit");
-            Console.Write("Enter your choice (1-9): ");
+            Console.Write("Enter your choice (1-11): ");
 
             var input = Console.ReadLine();
 
@@ -67,6 +69,12 @@ public class MenuService
                     case MenuOption.FetchAllSubscriptions:
                         await _manager.FetchAllSubscriptionsAsync();
                         break;
+                    case MenuOption.AddExtensionsToSubscription:
+                        await _actionHandler.AddExtensionsToSubscriptionAsync();
+                        break;
+                    case MenuOption.RemoveExtensionsFromSubscription:
+                        await _actionHandler.RemoveExtensionsFromSubscriptionAsync();
+                        break;
                     case MenuOption.DeleteSubscription:
                         await _actionHandler.DeleteSubscriptionByIdAsync();
                         break;
@@ -77,7 +85,7 @@ public class MenuService
                         Console.WriteLine("Exiting...");
                         return;
                     default:
-                        Console.WriteLine("Invalid choice. Please enter a number between 1 and 9.");
+                        Console.WriteLine("Invalid choice. Please enter a number between 1 and 11.");
                         break;
                 }
             }
