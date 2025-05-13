@@ -2,6 +2,6 @@
 
 public class AppConstants
 {
-    public const string AppName = "Nocturna Voicemail";
-    public const string SourceContext = "Nocturna.Voicemail.Program";
+    public const string AppName = "Nocturna Voicemail Workflow";
+    public const string SourceContext = "Nocturna.Presentation.Program";
 }
