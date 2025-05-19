@@ -46,8 +46,7 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
     /// <summary>
     /// Fetches all extensions and displays the ones that are enabled user extensions.
     /// </summary>
-    /// <param name="cancellationToken">Optional cancellation token.</param>
-    public async Task FetchAllExtensionsAsync(CancellationToken cancellationToken = default)
+    public async Task FetchAllExtensionsAsync()
     {
         try
         {
@@ -103,7 +102,7 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
     /// Creates voicemail notification subscription for a specific set of extension IDs.
     /// </summary>
     /// <param name="extensionIds">Array of extension IDs to subscribe to voicemail events.</param>
-    public async Task CreateVoicemailSubscriptionAsync(int[] extensionIds)
+    public async Task CreateVoicemailSubscriptionAsync(long[] extensionIds)
     {
         try
         {
@@ -166,7 +165,13 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
         }
     }
 
-    public async Task AddExtensionsToSubscriptionAsync(string subscriptionId, int[] extensionIdsToAdd)
+    /// <summary>
+    /// Adds the specified extension voicemail event filters to an existing subscription.
+    /// </summary>
+    /// <param name="subscriptionId">The ID of the subscription to update.</param>
+    /// <param name="extensionIdsToAdd">An array of extension IDs to be added to the subscription filters.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task AddExtensionsToSubscriptionAsync(string subscriptionId, long[] extensionIdsToAdd)
     {
         try
         {
@@ -190,6 +195,11 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
         }
     }
 
+    /// <summary>
+    /// Retrieves the current list of event filters for a given subscription.
+    /// </summary>
+    /// <param name="subscriptionId">The ID of the subscription to retrieve filters for.</param>
+    /// <returns>A task that returns a list of event filter strings.</returns>
     private async Task<List<string>> GetSubscriptionFiltersAsync(string subscriptionId)
     {
         var subscription = await _client.Restapi().Subscription(subscriptionId).Get();
@@ -201,7 +211,13 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
         return filters;
     }
 
-    public async Task RemoveExtensionsFromSubscriptionAsync(string subscriptionId, int[] extensionIdsToRemove)
+    /// <summary>
+    /// Removes the specified extension voicemail event filters from an existing subscription.
+    /// </summary>
+    /// <param name="subscriptionId">The ID of the subscription to update.</param>
+    /// <param name="extensionIdsToRemove">An array of extension IDs to be removed from the subscription filters.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task RemoveExtensionsFromSubscriptionAsync(string subscriptionId, long[] extensionIdsToRemove)
     {
         try
         {
@@ -223,7 +239,7 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
             ConsolePrinter.Error("Failed to remove extensions from subscription: " + ex.Message);
         }
     }
-
+    
     /// <summary>
     /// Deletes a specific subscription by its ID.
     /// </summary>

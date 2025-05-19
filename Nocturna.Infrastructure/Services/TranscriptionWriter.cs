@@ -7,13 +7,13 @@ namespace Nocturna.Infrastructure.Services;
 
 public class TranscriptionWriter(IFtpFileService ftpFileService, ILogger<TranscriptionWriter> logger) : ITranscriptionWriter
 {
-    public async Task WriteTranscriptionToFtpAsync(WebhookPayloadDto payload, string transcription, CancellationToken cancellationToken = default)
+    public async Task WriteTranscriptionToFtpAsync(ActivityContext<TranscriptionInput> context, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Writing voicemail transcription payload {PayloadUuId} to FTP file", payload.Uuid);
+        logger.LogInformation("Payload {PayloadUuid} - Writing voicemail transcription to FTP file", context.PayloadUuid);
 
-        var transcriptionEntry = GenerateTranscriptionEntry(payload, transcription);
+        var transcriptionEntry = GenerateTranscriptionEntry(context.Data.Payload, context.Data.Transcription);
 
-        var fileExists = await ftpFileService.FileExistsAsync(cancellationToken);
+        var fileExists = await ftpFileService.FileExistsAsync(context.PayloadUuid, cancellationToken);
 
         await ftpFileService.WriteToFileAsync(fileExists, transcriptionEntry, cancellationToken);
     }

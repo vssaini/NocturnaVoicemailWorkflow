@@ -1,7 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using Nocturna.Application.Abstractions;
 using Nocturna.Domain.Models;
+using Nocturna.Presentation.Helpers;
 
 namespace Nocturna.Presentation.Functions.Activities;
 
@@ -9,17 +9,15 @@ public class FetchTranscription(IVoicemailProcessor processor)
 {
     [Function(nameof(FetchTranscription))]
     public async Task<string?> Run(
-        [ActivityTrigger] VoicemailMessage voicemailMsg,
-        FunctionContext context,
+        [ActivityTrigger] ActivityContext<FetchTransInput> context,
         CancellationToken cancellationToken)
     {
-        var logger = context.GetLogger(nameof(FetchTranscription));
+        var (accountId, extensionId) = EventPathParser.ParseAccountAndExtensionFromPath(context.Data.Payload.Event);
 
-        var transcription = await processor.GetTranscriptionAsync(voicemailMsg, cancellationToken);
-        if (!string.IsNullOrWhiteSpace(transcription))
-            return transcription;
+        var voicemailMsg = new VoicemailMessage(accountId, extensionId, context.Data.Payload.Body.Id, context.Data.AttachmentId);
+        var voicemailContext = new ActivityContext<VoicemailMessage>(context.PayloadUuid,voicemailMsg);
 
-        logger.LogWarning("Transcription is empty or null for message {MessageId} (attachment {AttachmentId}).", voicemailMsg.MessageId, voicemailMsg.AttachmentId);
-        return null;
+        var transcription = await processor.GetTranscriptionAsync(voicemailContext, cancellationToken);
+        return !string.IsNullOrWhiteSpace(transcription) ? transcription : null;
     }
 }

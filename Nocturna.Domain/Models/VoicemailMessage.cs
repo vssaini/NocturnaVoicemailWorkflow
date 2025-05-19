@@ -1,3 +1,3 @@
 ﻿namespace Nocturna.Domain.Models;
 
-public record VoicemailMessage(long MessageId, long AttachmentId);
+public record VoicemailMessage(long AccountId, long ExtensionId, long MessageId, long AttachmentId);

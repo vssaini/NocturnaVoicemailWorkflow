@@ -14,9 +14,10 @@ public static class FilePolicy
     /// Creates a retry policy for handling transient FTP errors such as permission issues (e.g., 550 errors),
     /// I/O issues, and other unexpected failures during file upload or save operations.
     /// </summary>
+    /// <param name="payloadUuid">The UUID of the payload.</param>
     /// <param name="logger">Logger used to record retry attempts and error details.</param>
     /// <returns>An asynchronous retry policy for FTP upload operations.</returns>
-    public static AsyncRetryPolicy CreateFtpRetryPolicy(ILogger logger)
+    public static AsyncRetryPolicy CreateFtpRetryPolicy(string payloadUuid, ILogger logger)
     {
         return Policy
             .Handle<FtpCommandException>(ex => ex.CompletionCode == "550") // Access denied
@@ -30,7 +31,8 @@ public static class FilePolicy
                 {
                     logger.LogError(
                         exception,
-                        "[FTP RETRY] Attempt {RetryCount} after {Delay}s due to: {ErrorType} - {ErrorMessage}",
+                        "Payload {PayloadUuid} - [FTP RETRY] Attempt {RetryCount} after {Delay}s due to: {ErrorType} - {ErrorMessage}",
+                        payloadUuid,
                         retryCount,
                         timespan.TotalSeconds,
                         exception.GetType().Name,

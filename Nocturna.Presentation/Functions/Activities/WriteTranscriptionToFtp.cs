@@ -8,9 +8,9 @@ public class WriteTranscriptionToFtp(ITranscriptionWriter transWriter)
 {
     [Function(nameof(WriteTranscriptionToFtp))]
     public async Task Run(
-        [ActivityTrigger] TranscriptionInput input,
+        [ActivityTrigger] ActivityContext<TranscriptionInput> context,
         CancellationToken cancellationToken)
     {
-        await transWriter.WriteTranscriptionToFtpAsync(input.Payload, input.Transcription, cancellationToken);
+        await transWriter.WriteTranscriptionToFtpAsync(context, cancellationToken);
     }
 }

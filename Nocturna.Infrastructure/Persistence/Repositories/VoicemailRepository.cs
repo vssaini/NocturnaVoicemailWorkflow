@@ -2,24 +2,25 @@
 using Microsoft.Extensions.Logging;
 using Nocturna.Domain.Abstractions;
 using Nocturna.Domain.Entities;
+using Nocturna.Domain.Models;
 using System.Data;
 
 namespace Nocturna.Infrastructure.Persistence.Repositories;
 
 public class VoicemailRepository(IDbConnectionFactory dbConnectionFactory, ILogger<VoicemailRepository> logger) : IVoicemailRepository
 {
-    public async Task<int> SaveWebhookPayloadAsync(string payload, CancellationToken cancellationToken = default)
+    public async Task<int> SaveWebhookPayloadAsync(ActivityContext<string> context, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Saving webhook payload to database."); // TODO: Show bodyId in each log for tracking (brainstorm)
+        logger.LogInformation("Payload {PayloadUuid} - Saving webhook payload to database", context.PayloadUuid);
 
         var dParams = new DynamicParameters();
-        dParams.Add("@Payload", payload);
+        dParams.Add("@Payload", context.Data);
         dParams.Add("@Source", "RingCentral");
         dParams.Add("@DeveloperComments", GetDevComments());
         dParams.Add("@PayloadId", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
         using var connection = await dbConnectionFactory.CreateConnectionAsync(cancellationToken);
-        var command = new CommandDefinition("dbo.usp_SaveWebhookPayload", dParams, cancellationToken: cancellationToken);
+        var command = new CommandDefinition("comm.usp_SaveWebhookPayload", dParams, cancellationToken: cancellationToken);
         await connection.ExecuteAsync(command);
 
         return dParams.Get<int>("@PayloadId");
@@ -35,12 +36,14 @@ public class VoicemailRepository(IDbConnectionFactory dbConnectionFactory, ILogg
         return devComments;
     }
 
-    public async Task SaveVoicemailTranscriptionAsync(int payloadId, VoicemailTranscription transcription, CancellationToken cancellationToken = default)
+    public async Task SaveVoicemailTranscriptionAsync(int savedPayloadId, ActivityContext<VoicemailTranscription> context, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Saving voicemail transcription for DB payload {DbPayloadId} to database", payloadId);
+        logger.LogInformation("Payload {PayloadUuid} - Saving voicemail transcription to database.", context.PayloadUuid);
+
+        var transcription = context.Data;
 
         var dParams = new DynamicParameters();
-        dParams.Add("@PayloadId", payloadId);
+        dParams.Add("@PayloadId", savedPayloadId);
         dParams.Add("@RingCentralUuid", transcription.RingCentralUuid);
         dParams.Add("@CallDateTime", transcription.CallDateTime);
         dParams.Add("@FromPhoneNumber", transcription.From.Number);
@@ -52,7 +55,7 @@ public class VoicemailRepository(IDbConnectionFactory dbConnectionFactory, ILogg
         dParams.Add("@AudioRecordingUri", transcription.AudioRecordingUri);
 
         using var connection = await dbConnectionFactory.CreateConnectionAsync(cancellationToken);
-        var command = new CommandDefinition("dbo.usp_SaveVoicemailTranscription", dParams, cancellationToken: cancellationToken);
+        var command = new CommandDefinition("comm.usp_SaveVoicemailTranscription", dParams, cancellationToken: cancellationToken);
         await connection.ExecuteAsync(command);
     }
 }

@@ -8,10 +8,9 @@ public class SaveTranscription(IVoicemailProcessor processor)
 {
     [Function(nameof(SaveTranscription))]
     public async Task Run(
-        [ActivityTrigger] TranscriptionInput input,
-        FunctionContext context,
+        [ActivityTrigger] ActivityContext<TranscriptionInput> context,
         CancellationToken cancellationToken)
     {
-        await processor.SaveVoicemailTranscriptionAsync(input.Payload, input.Transcription, input.DbPayloadId, cancellationToken);
+        await processor.SaveVoicemailTranscriptionAsync(context, cancellationToken);
     }
 }

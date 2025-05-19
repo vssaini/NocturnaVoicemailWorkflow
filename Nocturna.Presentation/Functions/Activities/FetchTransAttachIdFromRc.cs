@@ -2,6 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Nocturna.Application.Abstractions;
 using Nocturna.Domain.Models;
 using Nocturna.Domain.Models.RingCentral;
+using Nocturna.Presentation.Helpers;
 
 namespace Nocturna.Presentation.Functions.Activities;
 
@@ -9,9 +10,15 @@ public class FetchTransAttachIdFromRc(IMessageFetcher messageFetcher, IVoicemail
 {
     [Function(nameof(FetchTransAttachIdFromRc))]
     public async Task<long?> Run(
-        [ActivityTrigger] WebhookPayloadDto payloadDto)
+        [ActivityTrigger] ActivityContext<WebhookPayloadDto> context,
+        CancellationToken cancellationToken)
     {
-        var message = await messageFetcher.GetMessageAsync(new MessageRequest(payloadDto.Body.Id));
+        var (accountId, extensionId) = EventPathParser.ParseAccountAndExtensionFromPath(context.Data.Event);
+
+        var msgRequest = new MessageRequest(accountId, extensionId, context.Data.Body.Id);
+        var msgContext = new ActivityContext<MessageRequest>(context.PayloadUuid, msgRequest);
+
+        var message = await messageFetcher.GetMessageAsync(msgContext, cancellationToken);
         return parser.GetTranscriptionAttachmentId(message);
     }
 }

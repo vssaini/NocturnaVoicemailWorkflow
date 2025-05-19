@@ -16,25 +16,25 @@ public class FtpFileService(
 {
     private readonly FtpSettings _ftpSettings = options.Value;
 
-    public async Task<bool> FileExistsAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> FileExistsAsync(string payloadUuid, CancellationToken cancellationToken = default)
     {
         var excelFilePath = GetRemoteExcelFilePath();
-        return await ftpClientService.FileExistsAsync(excelFilePath, cancellationToken);
+        return await ftpClientService.FileExistsAsync(payloadUuid, excelFilePath, cancellationToken);
     }
 
     public async Task WriteToFileAsync(bool fileExists, TranscriptionEntry entry, CancellationToken cancellationToken = default)
     {
         var excelFilePath = GetRemoteExcelFilePath();
-        logger.LogInformation("Beginning to save transcription payload {PayloadUuid} to Excel file at path: {ExcelFilePath}", entry.Uuid, excelFilePath);
+        logger.LogInformation("Payload {PayloadUuid} - Starting to write transcription to Excel file at path {ExcelFilePath}", entry.Uuid, excelFilePath);
 
         var stream = fileExists
-            ? await ftpClientService.DownloadFileStreamAsync(excelFilePath, cancellationToken)
+            ? await ftpClientService.DownloadFileStreamAsync(entry.Uuid, excelFilePath, cancellationToken)
             : excelFileService.GenerateExcelStream(true, entry);
 
         if (fileExists)
             stream = excelFileService.AddNewRowToExcelFile(stream, entry);
 
-        var status = await ftpClientService.UploadFileStreamAsync(stream, excelFilePath, cancellationToken);
+        var status = await ftpClientService.UploadFileStreamAsync(entry.Uuid, stream, excelFilePath, cancellationToken);
         LogUploadStatus(status, entry.Uuid);
     }
 
@@ -43,11 +43,11 @@ public class FtpFileService(
         return $"{_ftpSettings.RootDirectory.TrimEnd('/')}/{_ftpSettings.ExcelFileName.TrimStart('/')}";
     }
 
-    private void LogUploadStatus(FtpStatus status, string ringCentralUuid)
+    private void LogUploadStatus(FtpStatus status, string payloadUuid)
     {
         if (status == FtpStatus.Success)
-            logger.LogInformation("Successfully saved transcription payload {PayloadUuid} to Excel file", ringCentralUuid);
+            logger.LogInformation("Payload {PayloadUuid} - Successfully uploaded transcription Excel file via FTP.", payloadUuid);
         else
-            logger.LogError("Failed to save transcription payload {PayloadUuid} to Excel file. FTP status: {FtpStatus}", ringCentralUuid, status);
+            logger.LogError("Payload {PayloadUuid} - Failed to upload transcription Excel file via FTP. Status: {FtpStatus}", payloadUuid, status);
     }
 }

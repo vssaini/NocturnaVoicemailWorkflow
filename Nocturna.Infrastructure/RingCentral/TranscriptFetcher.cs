@@ -3,20 +3,22 @@ using Nocturna.Application.Abstractions;
 using Nocturna.Domain.Models;
 using Nocturna.Infrastructure.Policies;
 using Nocturna.Infrastructure.RingCentral.Clients;
-using Polly.Retry;
 
 namespace Nocturna.Infrastructure.RingCentral;
 
 public class TranscriptFetcher(IRingCentralMediaApi mediaApi, ILogger<TranscriptFetcher> logger) : ITranscriptFetcher
 {
-    private readonly AsyncRetryPolicy _apiRetryPolicy = RingCentralApiPolicy.CreateHttpRetryPolicy(logger);
-
-    public async Task<string> GetTranscriptionAsync(TranscriptionRequest request, CancellationToken cancellationToken = default)
+    public async Task<string> GetTranscriptionAsync(ActivityContext<TranscriptionRequest> context, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Calling RingCentral Media API to fetch transcription for message {MessageId} (attachment {AttachmentId})", request.MessageId, request.AttachmentId);
+        var request = context.Data;
+        logger.LogInformation("Payload {PayloadUuid} - Calling RingCentral Media API to fetch transcription from path 'account/{AccountId}/extension/{ExtensionId}/message-store/{MessageId}/content/{AttachmentId}'", context.PayloadUuid, request.AccountId, request.ExtensionId, request.MessageId, request.AttachmentId);
 
-        return await _apiRetryPolicy.ExecuteAsync(() =>
+        var apiRetryPolicy = ApiPolicy.CreateHttpRetryPolicy(context.PayloadUuid, logger);
+
+        return await apiRetryPolicy.ExecuteAsync(() =>
             mediaApi.GetMessageAttachmentContentAsync(
+                request.AccountId,
+                request.ExtensionId,
                 request.MessageId,
                 request.AttachmentId,
                 request.ContentDisposition.ToString(),

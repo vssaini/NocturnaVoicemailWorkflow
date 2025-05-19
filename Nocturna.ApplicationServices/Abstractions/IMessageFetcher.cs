@@ -5,5 +5,5 @@ namespace Nocturna.Application.Abstractions;
 
 public interface IMessageFetcher
 {
-    Task<MessageDto> GetMessageAsync(MessageRequest request, CancellationToken cancellationToken = default);
+    Task<MessageDto> GetMessageAsync(ActivityContext<MessageRequest> context, CancellationToken cancellationToken = default);
 }

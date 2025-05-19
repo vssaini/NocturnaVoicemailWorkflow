@@ -2,4 +2,4 @@
 
 namespace Nocturna.Domain.Models;
 
-public record TranscriptionInput(WebhookPayloadDto Payload, string Transcription, int DbPayloadId);
+public record TranscriptionInput(WebhookPayloadDto Payload, string Transcription, int SavedPayloadId);

@@ -17,7 +17,7 @@ public class TokenService(IOptions<RingCentralSettings> options,
     ILogger<TokenService> logger) : ITokenService
 {
     private readonly RingCentralSettings _rcSettings = options.Value;
-    private readonly AsyncRetryPolicy _apiRetryPolicy = RingCentralApiPolicy.CreateHttpRetryPolicy(logger);
+    private readonly AsyncRetryPolicy _apiRetryPolicy = TokenApiPolicy.CreateHttpRetryPolicy(logger);
     private readonly TimeSpan _bufferFiveMinutes = TimeSpan.FromMinutes(5);
 
     // Ref - https://developers.ringcentral.com/guide/authentication/refresh-tokens

@@ -1,8 +1,8 @@
-﻿using Nocturna.Domain.Models.RingCentral;
+﻿using Nocturna.Domain.Models;
 
 namespace Nocturna.Application.Abstractions;
 
 public interface ITranscriptionWriter
 {
-    Task WriteTranscriptionToFtpAsync(WebhookPayloadDto payload, string transcription, CancellationToken cancellationToken = default);
+    Task WriteTranscriptionToFtpAsync(ActivityContext<TranscriptionInput> context, CancellationToken cancellationToken = default);
 }

@@ -6,7 +6,6 @@ using Nocturna.Domain.Enums;
 using Nocturna.Domain.Models;
 using Nocturna.Domain.Models.RingCentral;
 using Nocturna.Infrastructure.Policies;
-using Polly.Retry;
 
 namespace Nocturna.Infrastructure.Services;
 
@@ -16,37 +15,48 @@ public class VoicemailProcessor(
     ILogger<VoicemailProcessor> logger)
     : IVoicemailProcessor
 {
-    private readonly AsyncRetryPolicy _dbRetryPolicy = DbPolicy.CreateDefaultRetryPolicy(logger);
-
-    public async Task<int> SavePayloadAsync(string payload, CancellationToken cancellationToken = default)
+    public async Task<int> SavePayloadAsync(ActivityContext<string> context, CancellationToken cancellationToken = default)
     {
-        var payloadId = await _dbRetryPolicy.ExecuteAsync(async ct =>
-            await voicemailRepository.SaveWebhookPayloadAsync(payload, ct), cancellationToken);
+        var dbRetryPolicy = DbPolicy.CreateDefaultRetryPolicy(context.PayloadUuid, logger);
+
+        var payloadId = await dbRetryPolicy.ExecuteAsync(async ct =>
+            await voicemailRepository.SaveWebhookPayloadAsync(context, ct), cancellationToken);
 
         return payloadId;
     }
 
-    public async Task<string> GetTranscriptionAsync(VoicemailMessage voicemailMessage, CancellationToken cancellationToken = default)
+    public async Task<string> GetTranscriptionAsync(ActivityContext<VoicemailMessage> context, CancellationToken cancellationToken = default)
     {
-        var request = new TranscriptionRequest(voicemailMessage.MessageId, voicemailMessage.AttachmentId, ContentDisposition.Inline);
-        var transcription = await transcriptFetcher.GetTranscriptionAsync(request, cancellationToken);
+        var voicemailMessage = context.Data;
+        var request = new TranscriptionRequest(
+            voicemailMessage.AccountId,
+            voicemailMessage.ExtensionId,
+            voicemailMessage.MessageId,
+            voicemailMessage.AttachmentId,
+            ContentDisposition.Inline);
+        var transContext = new ActivityContext<TranscriptionRequest>(context.PayloadUuid, request);
+        var transcription = await transcriptFetcher.GetTranscriptionAsync(transContext, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(transcription))
         {
-            logger.LogWarning("Transcription for message {MessageId} (attachment {AttachmentId}) is empty or null.", voicemailMessage.MessageId, voicemailMessage.AttachmentId);
+            logger.LogWarning("Payload {PayloadUuid} - Transcription for message {MessageId} (attachment {AttachmentId}) is empty or null.", context.PayloadUuid, voicemailMessage.MessageId, voicemailMessage.AttachmentId);
             return string.Empty;
         }
 
-        logger.LogInformation("Audio transcription for message {MessageId} (attachment {AttachmentId}): {Transcription}", voicemailMessage.MessageId, voicemailMessage.AttachmentId, transcription);
+        logger.LogInformation("Payload {PayloadUuid} - Audio transcription for message {MessageId} (attachment {AttachmentId}): {Transcription}", context.PayloadUuid, voicemailMessage.MessageId, voicemailMessage.AttachmentId, transcription);
         return transcription;
+
     }
 
-    public async Task SaveVoicemailTranscriptionAsync(WebhookPayloadDto payload, string transcription, int dbPayloadId, CancellationToken cancellationToken = default)
+    public async Task SaveVoicemailTranscriptionAsync(ActivityContext<TranscriptionInput> context, CancellationToken cancellationToken = default)
     {
-        var vmTranscription = MapPayloadToTranscription(payload, transcription);
+        var vmTranscription = MapPayloadToTranscription(context.Data.Payload, context.Data.Transcription);
+        var transContext = new ActivityContext<VoicemailTranscription>(context.PayloadUuid, vmTranscription);
 
-        await _dbRetryPolicy.ExecuteAsync(async ct =>
-            await voicemailRepository.SaveVoicemailTranscriptionAsync(dbPayloadId, vmTranscription, ct), cancellationToken);
+        var dbRetryPolicy = DbPolicy.CreateDefaultRetryPolicy(context.PayloadUuid, logger);
+
+        await dbRetryPolicy.ExecuteAsync(async ct =>
+            await voicemailRepository.SaveVoicemailTranscriptionAsync(context.Data.SavedPayloadId, transContext, ct), cancellationToken);
     }
 
     private static VoicemailTranscription MapPayloadToTranscription(WebhookPayloadDto payload, string transcription)

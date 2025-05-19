@@ -14,9 +14,10 @@ public static class DbPolicy
     /// Creates a default asynchronous retry policy for transient SQL or general exceptions.
     /// Retries up to 3 times with exponential backoff.
     /// </summary>
+    /// <param name="payloadUuid">The UUID of the payload.</param>
     /// <param name="logger">Logger to log retry attempts and exception details.</param>
     /// <returns>An asynchronous retry policy.</returns>
-    public static AsyncRetryPolicy CreateDefaultRetryPolicy(ILogger logger)
+    public static AsyncRetryPolicy CreateDefaultRetryPolicy(string payloadUuid, ILogger logger)
     {
         return Policy
             .Handle<SqlException>(IsTransientSqlException)
@@ -28,10 +29,8 @@ public static class DbPolicy
                 {
                     logger.LogError(
                         exception,
-                        "[DB RETRY] Attempt {RetryAttempt} after {Delay}s due to error: {ErrorMessage}",
-                        retryCount,
-                        delay.TotalSeconds,
-                        exception.Message);
+                        "Payload {PayloadUuid} - [DB RETRY] Attempt {RetryAttempt} after {Delay}s due to error: {ErrorMessage}",
+                        payloadUuid, retryCount, delay.TotalSeconds, exception.Message);
                 });
     }
 

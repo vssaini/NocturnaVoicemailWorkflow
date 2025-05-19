@@ -51,7 +51,7 @@ func start
 ```
 
 ### Generate RingCentral Subscription
-Read the [Nocturna Voicemail Instructions](https://docs.google.com/document/d/14fUd6-mHUbkPdSmL-ixPimLP_EsQo6Vw3EeWtyX88hI/edit?usp=sharing) doc for generating subscription and validation-token.
+Read the [Nocturna Voicemail Instructions](https://docs.google.com/document/d/14fUd6-mHUbkPdSmL-ixPimLP_EsQo6Vw3EeWtyX88hI/edit?usp=sharing) doc for generating subscription and verficiation-token.
 
 ---
 
@@ -76,7 +76,7 @@ Update the following settings in your `appsettings.json` or Azure App Configurat
     "ClientId": "",
     "ClientSecret": "",
     "JwtToken": "",
-    "WebhookSecret": "" // validation-token
+    "WebhookSecret": "" // verification-token
   },
 
   "Ftp": {

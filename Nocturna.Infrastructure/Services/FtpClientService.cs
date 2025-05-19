@@ -11,7 +11,7 @@ public class FtpClientService(IOptions<FtpSettings> options, ILogger<FtpClientSe
 {
     private readonly FtpSettings _ftp = options.Value;
 
-    public async Task<bool> FileExistsAsync(string remoteFilePath, CancellationToken cancellationToken = default)
+    public async Task<bool> FileExistsAsync(string payloadUuid, string remoteFilePath, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -20,7 +20,7 @@ public class FtpClientService(IOptions<FtpSettings> options, ILogger<FtpClientSe
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error checking file existence: {FilePath}", remoteFilePath);
+            logger.LogError(ex, "Payload {PayloadUuid} - Error checking file {FilePath} existence", payloadUuid, remoteFilePath);
             return false;
         }
     }
@@ -40,9 +40,9 @@ public class FtpClientService(IOptions<FtpSettings> options, ILogger<FtpClientSe
         return client;
     }
 
-    public async Task<MemoryStream> DownloadFileStreamAsync(string remoteFilePath, CancellationToken cancellationToken)
+    public async Task<MemoryStream> DownloadFileStreamAsync(string payloadUuid, string remoteFilePath, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Downloading existing file stream from FTP server {FilePath}", remoteFilePath);
+        logger.LogInformation("Payload {PayloadUuid} - Downloading existing file stream from FTP server {FilePath}", payloadUuid, remoteFilePath);
 
         var stream = new MemoryStream();
         await using (var client = await CreateFtpClientAsync(cancellationToken))
@@ -54,12 +54,12 @@ public class FtpClientService(IOptions<FtpSettings> options, ILogger<FtpClientSe
         return stream;
     }
 
-    public async Task<FtpStatus> UploadFileStreamAsync(MemoryStream stream, string remoteFilePath,
+    public async Task<FtpStatus> UploadFileStreamAsync(string payloadUuid, MemoryStream stream, string remoteFilePath,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Uploading file stream to FTP server {FilePath}", remoteFilePath);
+        logger.LogInformation("Payload {PayloadUuid} - Uploading file stream to FTP server {FilePath}", payloadUuid, remoteFilePath);
 
-        var filePolicy = FilePolicy.CreateFtpRetryPolicy(logger);
+        var filePolicy = FilePolicy.CreateFtpRetryPolicy(payloadUuid, logger);
 
         await using var client = await CreateFtpClientAsync(cancellationToken);
         var status = await filePolicy.ExecuteAsync(ct => client.UploadStream(

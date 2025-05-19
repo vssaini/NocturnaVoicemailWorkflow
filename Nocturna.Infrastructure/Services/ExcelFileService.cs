@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using Nocturna.Application.Abstractions;
 using Nocturna.Domain.Models;
+using Nocturna.Infrastructure.Extensions;
 
 namespace Nocturna.Infrastructure.Services;
 
@@ -39,7 +40,7 @@ public class ExcelFileService : IExcelFileService
     private static void AddExcelRow(IXLWorksheet sheet, int row, TranscriptionEntry entry)
     {
         sheet.Cell(row, 1).Value = entry.Uuid;
-        sheet.Cell(row, 2).Value = entry.CreationTime;
+        sheet.Cell(row, 2).Value = entry.CreationTime.ToPacificTime();
         sheet.Cell(row, 3).Value = entry.FromPhoneNumber;
         sheet.Cell(row, 4).Value = entry.ToPhoneNumber;
         sheet.Cell(row, 5).Value = entry.Transcription.Replace('\u202F', ' ');

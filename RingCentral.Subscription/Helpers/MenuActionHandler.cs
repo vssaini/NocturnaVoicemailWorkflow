@@ -57,7 +57,7 @@ namespace RingCentral.Subscription.Helpers
             {
                 var extensionIds = extInput
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.Parse(id.Trim()))
+                    .Select(id => long.Parse(id.Trim()))
                     .ToArray();
 
                 await _manager.CreateVoicemailSubscriptionAsync(extensionIds);
@@ -114,7 +114,7 @@ namespace RingCentral.Subscription.Helpers
             {
                 var extensionIds = extInput
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.Parse(id.Trim()))
+                    .Select(id => long.Parse(id.Trim()))
                     .ToArray();
 
                 await _manager.AddExtensionsToSubscriptionAsync(subscriptionId, extensionIds);
@@ -153,7 +153,7 @@ namespace RingCentral.Subscription.Helpers
             {
                 var extensionIds = extInput
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.Parse(id.Trim()))
+                    .Select(id => long.Parse(id.Trim()))
                     .ToArray();
 
                 await _manager.RemoveExtensionsFromSubscriptionAsync(subscriptionId, extensionIds);

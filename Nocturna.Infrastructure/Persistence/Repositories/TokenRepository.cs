@@ -19,7 +19,7 @@ public class TokenRepository(IDbConnectionFactory dbConnectionFactory, ILogger<T
             RefreshTokenExpiresAt,
             CreatedAtUtc,
             UpdatedAtUtc
-        FROM dbo.RingCentralTokens
+        FROM comm.RingCentralTokens
         ORDER BY CreatedAtUtc DESC;";
 
         using var connection = await dbConnectionFactory.CreateConnectionAsync(cancellationToken);
@@ -30,13 +30,13 @@ public class TokenRepository(IDbConnectionFactory dbConnectionFactory, ILogger<T
     public async Task SaveTokenAsync(RingCentralTokenDto token, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Creating new RingCentral token.");
-        await SaveOrUpdateTokenAsync(null, token, cancellationToken, "dbo.usp_CreateRingCentralToken");
+        await SaveOrUpdateTokenAsync(null, token, cancellationToken, "comm.usp_CreateRingCentralToken");
     }
 
     public async Task UpdateTokenAsync(int id, RingCentralTokenDto token, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Updating RingCentral token with Id {TokenId}.", id);
-        await SaveOrUpdateTokenAsync(id, token, cancellationToken, "dbo.usp_UpdateRingCentralToken");
+        await SaveOrUpdateTokenAsync(id, token, cancellationToken, "comm.usp_UpdateRingCentralToken");
     }
 
     private async Task SaveOrUpdateTokenAsync(int? id, RingCentralTokenDto token, CancellationToken cancellationToken, string storedProcedure)
