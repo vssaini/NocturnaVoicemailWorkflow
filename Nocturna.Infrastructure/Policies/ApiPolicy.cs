@@ -48,7 +48,7 @@ public class ApiPolicy
                 {
                     if (exception is ApiException apiEx)
                     {
-                        logger.LogError(apiEx, "Payload {PayloadUuid} - [API RETRY] Attempt {RetryCount} after {Delay}s due to API error {StatusCode}",
+                        logger.LogWarning(apiEx, "Payload {PayloadUuid} - [API RETRY] Attempt {RetryCount} after {Delay}s due to API error {StatusCode}",
                             payloadUuid, retryCount, timespan.TotalSeconds, apiEx.StatusCode);
                     }
                     await Task.CompletedTask;

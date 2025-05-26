@@ -42,7 +42,7 @@ public class FtpClientService(IOptions<FtpSettings> options, ILogger<FtpClientSe
 
     public async Task<MemoryStream> DownloadFileStreamAsync(string payloadUuid, string remoteFilePath, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Payload {PayloadUuid} - Downloading existing file stream from FTP server {FilePath}", payloadUuid, remoteFilePath);
+        logger.LogDebug("Payload {PayloadUuid} - Downloading existing file stream from FTP file {FilePath}", payloadUuid, remoteFilePath);
 
         var stream = new MemoryStream();
         await using (var client = await CreateFtpClientAsync(cancellationToken))
@@ -57,7 +57,7 @@ public class FtpClientService(IOptions<FtpSettings> options, ILogger<FtpClientSe
     public async Task<FtpStatus> UploadFileStreamAsync(string payloadUuid, MemoryStream stream, string remoteFilePath,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Payload {PayloadUuid} - Uploading file stream to FTP server {FilePath}", payloadUuid, remoteFilePath);
+        logger.LogDebug("Payload {PayloadUuid} - Uploading file stream to FTP file {FilePath}", payloadUuid, remoteFilePath);
 
         var filePolicy = FilePolicy.CreateFtpRetryPolicy(payloadUuid, logger);
 

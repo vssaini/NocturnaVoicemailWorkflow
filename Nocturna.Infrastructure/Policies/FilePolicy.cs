@@ -23,13 +23,13 @@ public static class FilePolicy
             .Handle<FtpCommandException>(ex => ex.CompletionCode == "550") // Access denied
             .Or<IOException>() // File system errors
             .Or<UnauthorizedAccessException>() // File permission issues
-            .Or<Exception>() // Any unhandled exception
+            .Or<FtpException>()
             .WaitAndRetryAsync(
                 retryCount: 3,
                 sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                 onRetry: (exception, timespan, retryCount, _) =>
                 {
-                    logger.LogError(
+                    logger.LogWarning(
                         exception,
                         "Payload {PayloadUuid} - [FTP RETRY] Attempt {RetryCount} after {Delay}s due to: {ErrorType} - {ErrorMessage}",
                         payloadUuid,

@@ -11,6 +11,10 @@ public class SavePayload(IVoicemailProcessor processor)
         [ActivityTrigger] ActivityContext<string> context)
     {
         var dbPayloadId = await processor.SavePayloadAsync(context);
+
+        if (dbPayloadId <= 0)
+            throw new InvalidOperationException("Failed to save payload to database");
+
         return dbPayloadId;
     }
 }

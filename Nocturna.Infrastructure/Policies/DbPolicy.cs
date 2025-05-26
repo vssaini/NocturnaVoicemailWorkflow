@@ -21,13 +21,12 @@ public static class DbPolicy
     {
         return Policy
             .Handle<SqlException>(IsTransientSqlException)
-            .Or<Exception>()
             .WaitAndRetryAsync(
                 retryCount: 3,
                 sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
                 onRetry: (exception, delay, retryCount, _) =>
                 {
-                    logger.LogError(
+                    logger.LogWarning(
                         exception,
                         "Payload {PayloadUuid} - [DB RETRY] Attempt {RetryAttempt} after {Delay}s due to error: {ErrorMessage}",
                         payloadUuid, retryCount, delay.TotalSeconds, exception.Message);

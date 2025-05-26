@@ -18,7 +18,6 @@ public static class HostBuilderFactory
     /// <remarks>
     /// This method:
     /// <list type="bullet">
-    /// <item>Loads environment variables from a <c>.env</c> file using <c>dotenv.net</c>.</item>
     /// <item>Adds <c>appsettings.json</c> as a configuration source.</item>
     /// <item>Registers <see cref="RcClientProvider"/>, <see cref="RcSubscriptionManager"/>, <see cref="MenuService"/>, and <see cref="RcInitializer"/> in the DI container.</item>
     /// </list>
@@ -26,8 +25,6 @@ public static class HostBuilderFactory
     /// <returns>A fully configured <see cref="IHost"/> instance.</returns>
     public static IHost CreateHost()
     {
-        // Ref - https://github.com/bolorundurowb/dotenv.net
-        // Load environment variables from .env file
         DotEnv.Load();
 
         return Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()

@@ -17,6 +17,15 @@ internal sealed class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddl
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
+        // Skip middleware for Durable Functions activities and orchestrators
+        if (context.FunctionDefinition.InputBindings.Any(
+                b => b.Value.Type == "orchestrationTrigger" 
+                     || b.Value.Type == "activityTrigger"))
+        {
+            await next(context);
+            return;
+        }
+
         try
         {
             await next(context);
@@ -47,6 +56,10 @@ internal sealed class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddl
                 {
                     invocationResult.Value = response;
                 }
+            }
+            else
+            {
+                throw;
             }
         }
     }

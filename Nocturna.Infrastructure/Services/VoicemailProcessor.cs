@@ -43,7 +43,7 @@ public class VoicemailProcessor(
             return string.Empty;
         }
 
-        logger.LogInformation("Payload {PayloadUuid} - Audio transcription for message {MessageId} (attachment {AttachmentId}): {Transcription}", context.PayloadUuid, voicemailMessage.MessageId, voicemailMessage.AttachmentId, transcription);
+        logger.LogDebug("Payload {PayloadUuid} - Audio transcription for message {MessageId} (attachment {AttachmentId}): {Transcription}", context.PayloadUuid, voicemailMessage.MessageId, voicemailMessage.AttachmentId, transcription);
         return transcription;
 
     }

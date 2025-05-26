@@ -1,4 +1,5 @@
-﻿using Nocturna.Domain.Models.RingCentral;
+﻿using Nocturna.Domain.Enums;
+using Nocturna.Domain.Models.RingCentral;
 using Xunit;
 
 namespace Nocturna.UnitTests;
@@ -69,7 +70,7 @@ public class DummyVoicemailTests
                 Availability = "Alive",
                 MessageStatus = "Received",
                 LastModifiedTime = DateTime.Parse("2025-04-24T02:25:48.549Z"),
-                VmTranscriptionStatus = "Completed",
+                VmTranscriptionStatus = VmTranscriptionStatus.Completed,
                 EventType = "Create"
             }
         };

@@ -46,7 +46,7 @@ public class TokenApiPolicy
                 {
                     if (exception is ApiException apiEx)
                     {
-                        logger.LogError(apiEx, "[TOKEN API RETRY] Attempt {RetryCount} after {Delay}s due to API error {StatusCode}",
+                        logger.LogWarning(apiEx, "[TOKEN API RETRY] Attempt {RetryCount} after {Delay}s due to API error {StatusCode}",
                             retryCount, timespan.TotalSeconds, apiEx.StatusCode);
                     }
                     await Task.CompletedTask;

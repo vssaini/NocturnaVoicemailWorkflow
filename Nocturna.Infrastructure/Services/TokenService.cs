@@ -34,7 +34,7 @@ public class TokenService(IOptions<RingCentralSettings> options,
 
         if (IsAccessTokenExpired(storedToken))
         {
-            logger.LogWarning("Access token expired, attempting to refresh.");
+            logger.LogWarning("♻️ Access token expired, attempting to refresh.");
             return await RefreshTokenAsync(storedToken);
         }
 

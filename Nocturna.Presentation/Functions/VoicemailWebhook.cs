@@ -1,4 +1,4 @@
-using Microsoft.Azure.Functions.Worker;
+﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,7 @@ public class VoicemailWebhook(ILogger<VoicemailWebhook> logger, IValidationToken
         [DurableClient] DurableTaskClient client,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Webhook received: RingCentral voicemail event");
+        logger.LogInformation("🔔 Webhook received from RingCentral");
 
         var payload = await JsonRequestParser.ReadJsonBodyAsync(req, logger, cancellationToken);
 

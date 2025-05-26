@@ -1,5 +1,6 @@
 ﻿#nullable disable
 
+using Nocturna.Domain.Enums;
 using System.Text.Json.Serialization;
 
 namespace Nocturna.Domain.Models.RingCentral;
@@ -46,8 +47,9 @@ public class MessageDto
     public DateTime LastModifiedTime { get; set; }
 
     [JsonPropertyName("vmTranscriptionStatus")]
-    public string VmTranscriptionStatus { get; set; }
-
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public VmTranscriptionStatus VmTranscriptionStatus { get; set; }
+    
     [JsonPropertyName("eventType")]
     public string EventType { get; set; }
 }

@@ -1,12 +1,11 @@
 ﻿using Dapper;
-using Microsoft.Extensions.Logging;
 using Nocturna.Domain.Abstractions;
 using Nocturna.Domain.Entities;
 using Nocturna.Domain.Models;
 
 namespace Nocturna.Infrastructure.Persistence.Repositories;
 
-public class TokenRepository(IDbConnectionFactory dbConnectionFactory, ILogger<TokenRepository> logger) : ITokenRepository
+public class TokenRepository(IDbConnectionFactory dbConnectionFactory) : ITokenRepository
 {
     public async Task<RingCentralToken?> GetTokenAsync(CancellationToken cancellationToken = default)
     {
@@ -29,13 +28,11 @@ public class TokenRepository(IDbConnectionFactory dbConnectionFactory, ILogger<T
 
     public async Task SaveTokenAsync(RingCentralTokenDto token, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Creating new RingCentral token.");
         await SaveOrUpdateTokenAsync(null, token, cancellationToken, "comm.usp_CreateRingCentralToken");
     }
 
     public async Task UpdateTokenAsync(int id, RingCentralTokenDto token, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Updating RingCentral token with Id {TokenId}.", id);
         await SaveOrUpdateTokenAsync(id, token, cancellationToken, "comm.usp_UpdateRingCentralToken");
     }
 

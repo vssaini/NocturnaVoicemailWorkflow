@@ -17,17 +17,16 @@ public class SecurityService(ILogger<SecurityService> logger, IOptions<RingCentr
             var token = tokens.First();
             if (token != options.Value.WebhookSecret)
             {
-                logger.LogWarning("Security verification failed — invalid verification-token {Token}", token);
+                logger.LogError("🛡️ Security verification failed — invalid verification-token {Token}", token);
                 var response = await CreateErrorResponseAsync(req, "Invalid verification-token", cancellationToken);
                 return new SecurityVerificationResult { IsValid = false, Response = response };
             }
 
-            logger.LogInformation("Security verification completed — verification-token matched");
             var successResponse = req.CreateResponse(HttpStatusCode.OK);
             return new SecurityVerificationResult { IsValid = true, Response = successResponse };
         }
 
-        logger.LogWarning("Security verification failed — verification-token header not found");
+        logger.LogError("🛡️ Security verification failed — verification-token header not found");
         var missingResponse = await CreateErrorResponseAsync(req, "Required header verification-token is missing", cancellationToken);
         return new SecurityVerificationResult { IsValid = false, Response = missingResponse };
     }

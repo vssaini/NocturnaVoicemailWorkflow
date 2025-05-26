@@ -14,11 +14,10 @@ public class ValidationTokenService(ILogger<ValidationTokenService> logger) : IV
         if (req.Headers.TryGetValues("Validation-Token", out var validationTokens) && string.IsNullOrWhiteSpace(payload))
         {
             var token = validationTokens.FirstOrDefault();
-            logger.LogInformation("Handling webhook endpoint setup validation. Echoing token: {Token}", token ?? "<null>");
-
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Validation-Token", token);
-            logger.LogInformation("Returning 200 OK for webhook validation.");
+
+            logger.LogInformation("🔑✔️ Webhook validation requested and responded with 200 OK.");
             return response;
         }
 

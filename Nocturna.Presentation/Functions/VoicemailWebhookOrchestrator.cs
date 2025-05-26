@@ -44,9 +44,8 @@ public class VoicemailWebhookOrchestrator
             context.SetCustomStatus($"Step: Error - {ex.Message}");
 
             var uuid = payloadDto?.Uuid ?? "unknown";
-            var errorMessage = $"[VoicemailWebhookOrchestrator] Error during orchestration for UUID: {uuid}. Message: {ex.Message}";
+            logger.LogError(ex, "Payload {PayloadUuid} - Error '{ErrorMessage}' during orchestration", uuid, ex.Message);
 
-            logger.LogError(ex, errorMessage);
             return Error("Internal server error while processing voicemail webhook");
         }
     }

@@ -9,7 +9,7 @@ public class TranscriptionWriter(IFtpFileService ftpFileService, ILogger<Transcr
 {
     public async Task WriteTranscriptionToFtpAsync(ActivityContext<TranscriptionInput> context, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Payload {PayloadUuid} - Writing voicemail transcription to FTP file", context.PayloadUuid);
+        logger.LogInformation("Payload {PayloadUuid} - Uploading voicemail transcription to FTP file", context.PayloadUuid);
 
         var transcriptionEntry = GenerateTranscriptionEntry(context.Data.Payload, context.Data.Transcription);
 

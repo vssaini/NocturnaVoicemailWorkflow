@@ -1,5 +1,6 @@
 ﻿using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
+using Nocturna.Domain.Enums;
 using Nocturna.Domain.Models;
 using Nocturna.Domain.Models.RingCentral;
 using Nocturna.Presentation.Functions.Activities;
@@ -29,7 +30,7 @@ public static class AttachmentHandler
             return initialAttachmentId;
 
         var logger = orchestrationContext.CreateReplaySafeLogger(typeof(AttachmentHandler));
-        logger.LogWarning("Payload {PayloadUuid} - Attachment Id not available in payload. Starting retry sequence...", activityContext.PayloadUuid);
+        logger.LogInformation("Payload {PayloadUuid} - Attachment Id not available in payload. Starting retry sequence...", activityContext.PayloadUuid);
         
         var retryDelays = new[]
         {
@@ -58,14 +59,18 @@ public static class AttachmentHandler
         TimeSpan[] retryDelays,
         ILogger logger)
     {
-        for (int i = 0; i < retryDelays.Length; i++)
+        for (var i = 0; i < retryDelays.Length; i++)
         {
             var attempt = i + 1;
             var delay = retryDelays[i];
 
             var result = await HandleRetryAttemptAsync(context, activityContext, logger, attempt, delay);
-            if (result.HasValue)
-                return result;
+
+            if (result.AttachmentId.HasValue)
+                return result.AttachmentId;
+
+            if (!result.ShouldRetry)
+                break; // Stop retrying early
         }
 
         return null;
@@ -82,7 +87,7 @@ public static class AttachmentHandler
     /// <returns>
     /// A task that returns the attachment Id if found on this attempt; otherwise, <c>null</c>.
     /// </returns>
-    private static async Task<long?> HandleRetryAttemptAsync(
+    private static async Task<RetryResult> HandleRetryAttemptAsync(
         TaskOrchestrationContext orchestrationContext,
         ActivityContext<WebhookPayloadDto> activityContext,
         ILogger logger,
@@ -95,16 +100,41 @@ public static class AttachmentHandler
         var fireAt = orchestrationContext.CurrentUtcDateTime.Add(delay);
         await orchestrationContext.CreateTimer(fireAt, CancellationToken.None);
 
-        var attachmentId = await orchestrationContext.CallActivityAsync<long?>(nameof(FetchTransAttachIdFromRc), activityContext);
+        var transResult = await orchestrationContext.CallActivityAsync<TranscriptionResult>(nameof(FetchTransAttachIdFromRc), activityContext);
 
-        if (attachmentId.HasValue)
+        return EvaluateTranscriptionResult(transResult, logger, attempt, activityContext.PayloadUuid);
+    }
+
+    /// <summary>
+    /// Evaluates the transcription result and determines whether a retry should be attempted.
+    /// </summary>
+    /// <param name="result">The result of the transcription fetch attempt, containing the attachment ID and transcription status.</param>
+    /// <param name="logger">The logger used to record success, failure, or termination due to final transcription state.</param>
+    /// <param name="attempt">The current retry attempt number.</param>
+    /// <param name="payloadUuid">The unique identifier for the payload being processed, used in log messages.</param>
+    /// <returns>
+    /// A <see cref="RetryResult"/> indicating whether the operation was successful or if further retries should be attempted.
+    /// </returns>
+    private static RetryResult EvaluateTranscriptionResult(
+        TranscriptionResult result,
+        ILogger logger,
+        int attempt,
+        string payloadUuid)
+    {
+        if (result.AttachmentId.HasValue)
         {
-            LogRetrySuccess(logger, activityContext.PayloadUuid);
-            return attachmentId;
+            LogRetrySuccess(logger, payloadUuid);
+            return new RetryResult(result.AttachmentId, false);
         }
 
-        LogRetryFailure(logger, attempt, activityContext.PayloadUuid);
-        return null;
+        if (result.TranscriptionStatus != VmTranscriptionStatus.InProgress)
+        {
+            LogRetryTerminated(logger, payloadUuid, result.TranscriptionStatus);
+            return new RetryResult(null, false);
+        }
+
+        LogRetryFailure(logger, attempt, payloadUuid);
+        return new RetryResult(null, true);
     }
 
     /// <summary>
@@ -127,7 +157,6 @@ public static class AttachmentHandler
         logger.LogInformation("Payload {PayloadUuid} - [FetchAttachId: RETRY {Attempt}, WAIT] 🕒 Waiting {DelaySeconds}s before next attempt to fetch attachment",
             payloadUuid, attempt, delay.TotalSeconds);
 
-
     /// <summary>
     /// Logs a successful retry attempt.
     /// </summary>
@@ -135,11 +164,19 @@ public static class AttachmentHandler
         logger.LogInformation("Payload {PayloadUuid} - Successfully fetched attachment Id", payloadUuid);
 
     /// <summary>
+    /// Logs a warning that retries will be skipped due to a terminal transcription status.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="payloadUuid">The UUID of the payload being processed.</param>
+    /// <param name="status">The final transcription status received.</param> //
+    private static void LogRetryTerminated(ILogger logger, string payloadUuid, VmTranscriptionStatus status) =>
+        logger.LogWarning("Payload {PayloadUuid} - Transcription status is {Status}, skipping ⏩ remaining retries", payloadUuid, status);
+
+    /// <summary>
     /// Logs a failed retry attempt.
     /// </summary>
     private static void LogRetryFailure(ILogger logger, int attempt, string payloadUuid) =>
         logger.LogWarning("Payload {PayloadUuid} - [FetchAttachId: RETRY {Attempt}, FAIL] Failed to fetch attachment",
             payloadUuid, attempt);
-
 }
 

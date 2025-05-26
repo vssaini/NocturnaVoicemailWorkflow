@@ -7,11 +7,12 @@ namespace RingCentral.Subscription;
 
 class Program
 {
-    static async Task Main()
+    static async Task Main(string[] args)
     {
         try
         {
             ConsolePrinter.PrintBanner();
+            EnvLoader.Initialize(args);
 
             var host = HostBuilderFactory.CreateHost();
             await host.StartAsync();
