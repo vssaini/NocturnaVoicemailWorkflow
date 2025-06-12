@@ -15,7 +15,7 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
     private readonly RestClient _client = rcProvider.Client!;
 
     /// <summary>
-    /// Fetches a specific extension by ID and displays its details if it is enabled.
+    /// Fetches a specific extension by ID and displays its details if it is enabled and of type 'User'.
     /// </summary>
     /// <param name="extensionId">The ID of the extension to fetch.</param>
     public async Task FetchExtensionAsync(string extensionId)
@@ -24,9 +24,9 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
         {
             var response = await _client.Restapi().Account().Extension(extensionId).Get();
 
-            if (response.status != "Enabled")
+            if (response.status != "Enabled" || response.type != "User")
             {
-                ConsolePrinter.Warning($"Extension {extensionId} is not a enabled extension.");
+                ConsolePrinter.Warning($"Extension {extensionId} is not a user-enabled extension.");
                 return;
             }
 
@@ -61,9 +61,12 @@ public class RcSubscriptionManager(RcClientProvider rcProvider, IOptions<Subscri
             var page = response.paging.page;
             var pageCount = response.paging.totalPages;
 
-            var extensions = response.records.ToList();            
+            var extensions = response.records
+                .ToList();
 
-            ConsolePrinter.Info($"Found {totalExtensions} extensions (Page {page}/{pageCount}), {extensions.Count} user-enabled.{Environment.NewLine}");
+            var userAndEnabledExtensions = extensions.Count;
+
+            ConsolePrinter.Info($"Found {totalExtensions} extensions (Page {page}/{pageCount}), {userAndEnabledExtensions} enabled.{Environment.NewLine}");
             ConsolePrinter.PrintExtensionsTable(extensions);
         }
         catch (Exception ex)

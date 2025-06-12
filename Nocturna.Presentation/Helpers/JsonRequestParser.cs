@@ -24,21 +24,9 @@ public class JsonRequestParser
         if (req.Body is { CanRead: true } &&
             req.Headers.TryGetValues("Content-Type", out var ct) &&
             ct.Any(h => h.Contains("application/json", StringComparison.OrdinalIgnoreCase)))
-        {
-            try
-            {
-                return await new StreamReader(req.Body).ReadToEndAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to read the webhook request body.");
-            }
-        }
-        else
-        {
-            logger.LogWarning("Skipping body reading: Content-Type is not 'application/json'.");
-        }
+            return await new StreamReader(req.Body).ReadToEndAsync(cancellationToken);
 
+        logger.LogWarning("Skipping body reading: Content-Type is not 'application/json'.");
         return null;
     }
 }
